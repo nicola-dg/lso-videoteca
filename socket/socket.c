@@ -21,6 +21,10 @@ void *handleClient(void *client_void_ptr)
     char buffer[BUFFERSIZE] = {0};
     int bytesRead;
 
+    /*-------------------------------------------------*/
+    /*----------LOGICA CONNESSIONE DATABASE------------*/
+    /*-------------------------------------------------*/
+
     // Ciclo per continuare a leggere finché il client non invia "Connection: close"
     while (1)
     {
@@ -43,16 +47,25 @@ void *handleClient(void *client_void_ptr)
         // Visualizza i dati ricevuti
         printf("Received from client-%d:\n%s\n", client->socket, buffer);
 
+        /*-------------------------------------------------*/
+        /*-----------LOGICA PARSING RICHIESTA--------------*/
+        /*-------------------------------------------------*/
+
         // Se il client invia "Connection: close", interrompi la comunicazione
-        if (strncmp(buffer, "Connection: close", 17) == 0)
-        {
-            printf("Client requested to close the connection\n");
-            break;
-        }
+        // if (isConnectionClosed())
+        //{
+        /*-------------------------------------------------*/
+        /*----------LOGICA CHIUSURA CONNESSIONE------------*/
+        /*-------------------------------------------------*/
+        //}
 
         // Risposta al client
         const char *response = "Message received\n";
         printf("sending response from thread-%ld to client-%d\n", tid, client->socket);
+
+        /*-------------------------------------------------*/
+        /*-------------LOGICA RISPOSTA CLIENT--------------*/
+        /*-------------------------------------------------*/
         if (send(client->socket, response, strlen(response), 0) == -1)
         {
             perror("Error sending response to client");
