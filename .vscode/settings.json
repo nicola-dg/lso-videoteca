@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.py": "python",
+        "socket.h": "c",
+        "unistd.h": "c"
+    }
+}
