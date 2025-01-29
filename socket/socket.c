@@ -45,11 +45,14 @@ void *handleClient(void *client_void_ptr)
         buffer[bytesRead] = '\0';
 
         // Visualizza i dati ricevuti
-        printf("Received from client-%d:\n%s\n", client->socket, buffer);
+        // printf("Received from client-%d:\n%s\n", client->socket, buffer);
 
         /*-------------------------------------------------*/
         /*-----------LOGICA PARSING RICHIESTA--------------*/
         /*-------------------------------------------------*/
+        request_t *req = decode(buffer);
+        printf("prova stampa richiesta\n");
+        print_request(req);
 
         // Se il client invia "Connection: close", interrompi la comunicazione
         // if (isConnectionClosed())

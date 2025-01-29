@@ -2,6 +2,7 @@
     "files.associations": {
         "*.py": "python",
         "socket.h": "c",
-        "unistd.h": "c"
+        "unistd.h": "c",
+        "request_print.h": "c"
     }
 }
