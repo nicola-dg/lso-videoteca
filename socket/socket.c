@@ -1,13 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <pthread.h>
+
 #include "socket.h"
-#include <arpa/inet.h>
 #define BUFFERSIZE 8192
 
 struct sockaddr_in serv_addr, client_addr;
@@ -52,7 +44,7 @@ void *handle_client(void *client_void_ptr)
         /*-------------------------------------------------*/
         request_t *req = decode(buffer);
         printf("prova stampa richiesta\n");
-        print_request(req);
+        route_request(req);
 
         // Se il client invia "Connection: close", interrompi la comunicazione
         // if (isConnectionClosed())

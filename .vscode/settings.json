@@ -4,5 +4,6 @@
         "socket.h": "c",
         "unistd.h": "c",
         "request_print.h": "c"
-    }
+    },
+    "makefile.configureOnOpen": false
 }

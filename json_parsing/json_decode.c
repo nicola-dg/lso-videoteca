@@ -12,8 +12,9 @@ request_t *initRequest()
     }
 
     req->headers = (headers_t *)malloc(sizeof(headers_t));
+    req->headers->headerCollection->key[0] = '\0';
     req->params = (params_t *)malloc(sizeof(params_t));
-
+    req->params->paramCollection->key[0] = '\0';
     // Assicurati che le stringhe siano allocate
     req->method = (char *)malloc(MAX_KEY_LEN * sizeof(char));
     req->path = (char *)malloc(MAX_VALUE_LEN * sizeof(char));

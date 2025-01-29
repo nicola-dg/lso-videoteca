@@ -7,10 +7,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include "socket.h"
 #include <arpa/inet.h>
 #include "../json_parsing/json.h"
 #include "../json_parsing/request_print.h"
+#include "../router/router.h"
 
 struct client
 {
