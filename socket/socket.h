@@ -21,9 +21,9 @@ struct client
 
 typedef struct client client_t;
 
-int createSocket();
-void bindSocket(int *sockfd);
-void startListening(int *sockfd);
-client_t *acceptConnection(int *sockfd);
-void setupServerAddress(int PORT);
-void startServer(int PORT);
+int create_socket();
+void bind_socket(int *sockfd);
+void start_listening(int *sockfd);
+client_t *accept_connection(int *sockfd);
+void setup_server_address(int PORT);
+void start_server(int PORT);

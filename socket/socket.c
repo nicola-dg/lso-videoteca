@@ -13,7 +13,7 @@
 struct sockaddr_in serv_addr, client_addr;
 socklen_t client_len = sizeof(client_addr);
 
-void *handleClient(void *client_void_ptr)
+void *handle_client(void *client_void_ptr)
 {
     client_t *client = (client_t *)client_void_ptr;
     pthread_t tid = pthread_self();
@@ -82,7 +82,7 @@ void *handleClient(void *client_void_ptr)
     return NULL;
 }
 
-int createSocket()
+int create_socket()
 {
     int sockfd;
     int opt = 1;
@@ -102,7 +102,7 @@ int createSocket()
     return sockfd;
 }
 
-void bindSocket(int *sockfd)
+void bind_socket(int *sockfd)
 {
     if (bind(*sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == -1)
     {
@@ -111,7 +111,7 @@ void bindSocket(int *sockfd)
     }
 }
 
-void startListening(int *sockfd)
+void start_listening(int *sockfd)
 {
     if (listen(*sockfd, 3) == -1)
     {
@@ -120,7 +120,7 @@ void startListening(int *sockfd)
     }
 }
 
-client_t *acceptConnection(int *sockfd)
+client_t *accept_connection(int *sockfd)
 {
     client_t *client = (client_t *)malloc(sizeof(client_t));
 
@@ -129,32 +129,32 @@ client_t *acceptConnection(int *sockfd)
     return client;
 }
 
-void setupServerAddress(int port)
+void setup_server_address(int port)
 {
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(port);
 }
 
-void startServer(int port)
+void start_server(int port)
 {
-    int serverSocket = createSocket();
-    setupServerAddress(port);
+    int serverSocket = create_socket();
+    setup_server_address(port);
 
-    bindSocket(&serverSocket);
-    startListening(&serverSocket);
+    bind_socket(&serverSocket);
+    start_listening(&serverSocket);
 
     printf("Server running on port %d...\n", port);
 
     while (1)
     {
         // Accetta la connessione del client
-        client_t *client_ptr = acceptConnection(&serverSocket);
+        client_t *client_ptr = accept_connection(&serverSocket);
 
         // Crea un nuovo thread per gestire la connessione del client
         pthread_t thread;
 
-        if (pthread_create(&thread, NULL, handleClient, client_ptr) != 0)
+        if (pthread_create(&thread, NULL, handle_client, client_ptr) != 0)
         {
             perror("Error creating thread");
             free(client_ptr);
