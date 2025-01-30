@@ -64,9 +64,6 @@ bool handle_get_user_request(request_t *req)
 
     // send_response(200, jwt_as_string)
     // jwt_free(jwt);
-    /*
-
-   */
 
     // liberare la memoria della request (free_request(req))
     return true;
