@@ -60,7 +60,7 @@ bool handle_get_user_request(request_t *req)
     jwt_t *jwt = init_jwt(payload);
 
     // Trasforma il JWT in stringa
-    char *jwt_string = jwt_encode_str(jwt);
+    jwt_encode_str(jwt);
 
     // send_response(200, jwt_as_string)
     // jwt_free(jwt);

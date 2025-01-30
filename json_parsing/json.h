@@ -4,11 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../types/request_type.h"
-
-
-// Funzioni per la gestione della richiesta
-request_t *initRequest();
-void free_request(request_t *req);
+#include "request.h"
 
 // Funzioni per l'estrazione dei campi JSON dalla richiesta
 bool extract_method(json_t *root, request_t *req);
