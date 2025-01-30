@@ -8,7 +8,7 @@ bool handle_post_user_request(request_t *req)
 {
     printf("Controllo che user sia formattato correttamente..\n");
     printf("Aggiungo nuovo user..\n");
-
+    // Aggiungi qui il codice per gestire la richiesta POST
     print_request(req);
     return true;
 }
@@ -18,7 +18,7 @@ bool handle_post_film_request(request_t *req)
     printf("Controllo se l'utente è un NEGOZIANTE...\n");
     printf("Controllo se il film è formattato correttamente...\n");
     printf("Aggiungo nuovo film...\n");
-
+    // Aggiungi qui il codice per gestire la richiesta POST
     print_request(req);
     return true;
 }
@@ -28,7 +28,7 @@ bool handle_post_message_request(request_t *req)
     printf("Controllo se l'utente è un NEGOZIANTE...\n");
     printf("Controllo se il messaggio è formattato correttamente...\n");
     printf("Aggiungo nuovo messaggio...\n");
-
+    // Aggiungi qui il codice per gestire la richiesta POST
     print_request(req);
     return true;
 }
