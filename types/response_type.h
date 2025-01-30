@@ -15,7 +15,3 @@ struct response
 typedef struct response response_t;
 
 
-response_t* init_response(){
-    response_t* response = (response_t*)malloc(sizeof(response_t));
-    return response;
-}
