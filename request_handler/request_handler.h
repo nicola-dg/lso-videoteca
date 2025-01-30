@@ -1,7 +1,7 @@
 #pragma once
 #include "../types/request_type.h"
 #include <stdbool.h>
-#include "../json_parsing/request_print.h"
+#include "../request_response/request_print.h"
 #include "../jwt/jwt.h"
 
 /*---------------------- POST --------------------------*/

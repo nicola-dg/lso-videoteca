@@ -10,12 +10,13 @@ JSON_PARSING_DIR = json_parsing
 JWT_DIR = jwt
 OBJ_DIR = obj
 REQUEST_HANDLER_DIR = request_handler
+REQUEST_RESPONSE_DIR = request_response
 ROUTER_DIR = router
 SOCKET_DIR = socket
 
 # Source files
 SRCS = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SOCKET_DIR)/*.c) $(wildcard $(JSON_PARSING_DIR)/*.c) \
- $(wildcard $(REQUEST_HANDLER_DIR)/*.c) $(wildcard $(ROUTER_DIR)/*.c) $(wildcard $(JWT_DIR)/*.c)
+ $(wildcard $(REQUEST_HANDLER_DIR)/*.c) $(wildcard $(ROUTER_DIR)/*.c) $(wildcard $(JWT_DIR)/*.c) $(wildcard $(REQUEST_RESPONSE_DIR)/*.c)
 OBJS = $(SRCS:%.c=$(OBJ_DIR)/%.o)
 
 # Binary name
@@ -23,7 +24,7 @@ TARGET = $(BIN_DIR)/main.exe
 
 # Create necessary directories
 $(shell mkdir -p $(BIN_DIR) $(OBJ_DIR) $(OBJ_DIR)/$(SOCKET_DIR) $(OBJ_DIR)/$(JSON_PARSING_DIR) \
-$(OBJ_DIR)/$(REQUEST_HANDLER_DIR) $(OBJ_DIR)/$(ROUTER_DIR) $(OBJ_DIR)/$(JWT_DIR)) 
+$(OBJ_DIR)/$(REQUEST_HANDLER_DIR) $(OBJ_DIR)/$(ROUTER_DIR) $(OBJ_DIR)/$(JWT_DIR) $(OBJ_DIR)/$(REQUEST_RESPONSE_DIR)) 
 
 # Default target
 all: $(TARGET)

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "../types/request_type.h"
-#include "request.h"
+#include "../request_response/request.h"
 
 // Funzioni per l'estrazione dei campi JSON dalla richiesta
 bool extract_method(json_t *root, request_t *req);
