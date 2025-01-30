@@ -21,7 +21,7 @@ bool handle_get_message_request(request_t *req);
 
 /*---------------------- PUT --------------------------*/
 bool handle_put_user_request(request_t *req);
-bool handle_put_message_request(request_t *req);
+bool handle_put_loan_film_request(request_t *req);
 bool handle_put_loan_request(request_t *req);
 /*------------------------------------------------------*/
 

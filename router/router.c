@@ -54,9 +54,9 @@ void route_put_request(request_t *req)
     {
         handle_put_user_request(req);
     }
-    else if (strcmp(req->path, "/message") == 0)
+    else if (strcmp(req->path, "/loan/film") == 0)
     {
-        handle_put_message_request(req);
+        handle_put_loan_film_request(req);
     }
     else if (strcmp(req->path, "/loan") == 0)
     {
