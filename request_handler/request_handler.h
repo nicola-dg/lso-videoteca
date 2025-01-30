@@ -2,6 +2,7 @@
 #include "../types/request_type.h"
 #include <stdbool.h>
 #include "../json_parsing/request_print.h"
+#include "../jwt/jwt.h"
 
 /*---------------------- POST --------------------------*/
 bool handle_post_user_request(request_t *req);

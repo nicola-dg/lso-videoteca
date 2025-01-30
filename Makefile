@@ -1,20 +1,21 @@
 # Compiler settings
 CC = gcc
 CFLAGS = -Wall -Wextra -std=c99 
-LDFLAGS = -ljansson
+LDFLAGS = -ljansson -ljwt
 
 # Directories
-OBJ_DIR = obj
 SRC_DIR = .
-SOCKET_DIR = socket
+BIN_DIR = bin
 JSON_PARSING_DIR = json_parsing
+JWT_DIR = jwt
+OBJ_DIR = obj
 REQUEST_HANDLER_DIR = request_handler
 ROUTER_DIR = router
-BIN_DIR = bin
+SOCKET_DIR = socket
 
 # Source files
 SRCS = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SOCKET_DIR)/*.c) $(wildcard $(JSON_PARSING_DIR)/*.c) \
- $(wildcard $(REQUEST_HANDLER_DIR)/*.c) $(wildcard $(ROUTER_DIR)/*.c)
+ $(wildcard $(REQUEST_HANDLER_DIR)/*.c) $(wildcard $(ROUTER_DIR)/*.c) $(wildcard $(JWT_DIR)/*.c)
 OBJS = $(SRCS:%.c=$(OBJ_DIR)/%.o)
 
 # Binary name
@@ -22,7 +23,7 @@ TARGET = $(BIN_DIR)/main.exe
 
 # Create necessary directories
 $(shell mkdir -p $(BIN_DIR) $(OBJ_DIR) $(OBJ_DIR)/$(SOCKET_DIR) $(OBJ_DIR)/$(JSON_PARSING_DIR) \
-$(OBJ_DIR)/$(REQUEST_HANDLER_DIR) $(OBJ_DIR)/$(ROUTER_DIR))
+$(OBJ_DIR)/$(REQUEST_HANDLER_DIR) $(OBJ_DIR)/$(ROUTER_DIR) $(OBJ_DIR)/$(JWT_DIR)) 
 
 # Default target
 all: $(TARGET)

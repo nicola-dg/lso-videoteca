@@ -3,7 +3,8 @@
         "*.py": "python",
         "socket.h": "c",
         "unistd.h": "c",
-        "request_print.h": "c"
+        "request_print.h": "c",
+        "jwt.h": "c"
     },
     "makefile.configureOnOpen": false
 }

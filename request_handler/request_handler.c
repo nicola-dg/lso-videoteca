@@ -51,6 +51,23 @@ bool handle_get_user_request(request_t *req)
     // Aggiungi qui il codice per gestire la richiesta GET
     print_request(req);
 
+    // user_t user = init_user(req)
+    // jwt_payload = login_user(user_t)
+    /*
+        supposto di aver un payload recuperato dal db crea il jwt
+    */
+    jwt_payload_t *payload = init_jwt_payload("12", "NEGOZIANTE");
+    jwt_t *jwt = init_jwt(payload);
+
+    // Trasforma il JWT in stringa
+    char *jwt_string = jwt_encode_str(jwt);
+
+    // send_response(200, jwt_as_string)
+    // jwt_free(jwt);
+    /*
+
+   */
+
     // liberare la memoria della request (free_request(req))
     return true;
 }
