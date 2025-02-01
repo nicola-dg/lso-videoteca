@@ -8,7 +8,6 @@ socklen_t client_len = sizeof(client_addr);
 void *handle_client(void *client_void_ptr)
 {
     client_t *client = (client_t *)client_void_ptr;
-    pthread_t tid = pthread_self();
 
     char buffer[BUFFERSIZE] = {0};
     int bytesRead;
@@ -43,7 +42,6 @@ void *handle_client(void *client_void_ptr)
         /*-----------LOGICA PARSING RICHIESTA--------------*/
         /*-------------------------------------------------*/
         request_t *req = decode(buffer);
-        printf("prova stampa richiesta\n");
         route_request(req, client->socket);
 
         // Se il client invia "Connection: close", interrompi la comunicazione
@@ -53,19 +51,6 @@ void *handle_client(void *client_void_ptr)
         /*----------LOGICA CHIUSURA CONNESSIONE------------*/
         /*-------------------------------------------------*/
         //}
-
-        // Risposta al client
-        const char *response = "Message received\n";
-        printf("sending response from thread-%ld to client-%d\n", tid, client->socket);
-
-        /*-------------------------------------------------*/
-        /*-------------LOGICA RISPOSTA CLIENT--------------*/
-        /*-------------------------------------------------*/
-        if (send(client->socket, response, strlen(response), 0) == -1)
-        {
-            perror("Error sending response to client");
-            break;
-        }
     }
 
     printf("closing connection with client-%d\n", client->socket);

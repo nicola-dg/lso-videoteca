@@ -59,17 +59,16 @@ bool handle_get_user_request(request_t *req, int client_socket)
     jwt_payload_t *payload = init_jwt_payload("12", "NEGOZIANTE");
     jwt_t *jwt = init_jwt(payload);
 
-    // Trasforma il JWT in stringa
-    jwt_encode_str(jwt);
+    response_t *res = init_response();
+    strcpy(res->status_code, "200");
+    strcpy(res->phrase, "Ok");
+    strcpy(res->payload, jwt_encode_str(jwt));
+    send_response(res, client_socket);
 
-    // res = init_response()
-    // res->status_code = "200"
-    // res->phras = "ok"
-    // res->payload = "jwt_string"
-    // send_response()
-    // jwt_free(jwt);
-
-    // liberare la memoria della request (free_request(req))
+    jwt_free(jwt);
+    free_request(req);
+    free_response(res);
+    
     return true;
 }
 
