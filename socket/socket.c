@@ -44,7 +44,7 @@ void *handle_client(void *client_void_ptr)
         /*-------------------------------------------------*/
         request_t *req = decode(buffer);
         printf("prova stampa richiesta\n");
-        route_request(req);
+        route_request(req, client->socket);
 
         // Se il client invia "Connection: close", interrompi la comunicazione
         // if (isConnectionClosed())

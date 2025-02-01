@@ -4,7 +4,7 @@
 /*-------------------------- POST REQUESTS -------------------------*/
 /*------------------------------------------------------------------*/
 
-bool handle_post_user_request(request_t *req)
+bool handle_post_user_request(request_t *req, int client_socket)
 {
     printf("Controllo che user sia formattato correttamente..\n");
     printf("Aggiungo nuovo user..\n");
@@ -15,7 +15,7 @@ bool handle_post_user_request(request_t *req)
     return true;
 }
 
-bool handle_post_film_request(request_t *req)
+bool handle_post_film_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un NEGOZIANTE...\n");
     printf("Controllo se il film è formattato correttamente...\n");
@@ -27,7 +27,7 @@ bool handle_post_film_request(request_t *req)
     return true;
 }
 
-bool handle_post_message_request(request_t *req)
+bool handle_post_message_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un NEGOZIANTE...\n");
     printf("Controllo se il messaggio è formattato correttamente...\n");
@@ -45,11 +45,11 @@ bool handle_post_message_request(request_t *req)
 /*-------------------------- GET REQUESTS --------------------------*/
 /*------------------------------------------------------------------*/
 
-bool handle_get_user_request(request_t *req)
+bool handle_get_user_request(request_t *req, int client_socket)
 {
     printf("GET /user request ricevuta...\n");
     // Aggiungi qui il codice per gestire la richiesta GET
-    print_request(req);
+    // print_request(req);
 
     // user_t user = init_user(req)
     // jwt_payload = login_user(user_t)
@@ -62,14 +62,18 @@ bool handle_get_user_request(request_t *req)
     // Trasforma il JWT in stringa
     jwt_encode_str(jwt);
 
-    // send_response(200, jwt_as_string)
+    // res = init_response()
+    // res->status_code = "200"
+    // res->phras = "ok"
+    // res->payload = "jwt_string"
+    // send_response()
     // jwt_free(jwt);
 
     // liberare la memoria della request (free_request(req))
     return true;
 }
 
-bool handle_get_film_request(request_t *req)
+bool handle_get_film_request(request_t *req, int client_socket)
 {
     printf("GET /film request ricevuta...\n");
     // Aggiungi qui il codice per gestire la richiesta GET
@@ -79,7 +83,7 @@ bool handle_get_film_request(request_t *req)
     return true;
 }
 
-bool handle_get_cart_film_request(request_t *req)
+bool handle_get_cart_film_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un USER...\n");
     printf("GET /cart/film request ricevuta...\n");
@@ -90,7 +94,7 @@ bool handle_get_cart_film_request(request_t *req)
     return true;
 }
 
-bool handle_get_loan_film_request(request_t *req)
+bool handle_get_loan_film_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un USER...\n");
     printf("GET /loan/film request ricevuta...\n");
@@ -101,7 +105,7 @@ bool handle_get_loan_film_request(request_t *req)
     return true;
 }
 
-bool handle_get_film_info_request(request_t *req)
+bool handle_get_film_info_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un NEGOZIANTE...\n");
     printf("GET /film/info request ricevuta...\n");
@@ -112,7 +116,7 @@ bool handle_get_film_info_request(request_t *req)
     return true;
 }
 
-bool handle_get_loan_expire_request(request_t *req)
+bool handle_get_loan_expire_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un NEGOZIANTE...\n");
     printf("GET /loan/expired request ricevuta...\n");
@@ -123,7 +127,7 @@ bool handle_get_loan_expire_request(request_t *req)
     return true;
 }
 
-bool handle_get_message_request(request_t *req)
+bool handle_get_message_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un USER...\n");
     printf("GET /message request ricevuta...\n");
@@ -140,7 +144,7 @@ bool handle_get_message_request(request_t *req)
 /*-------------------------- PUT REQUESTS --------------------------*/
 /*------------------------------------------------------------------*/
 
-bool handle_put_user_request(request_t *req)
+bool handle_put_user_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un NEGOZIANTE...\n");
     printf("PUT /user request ricevuta...\n");
@@ -151,7 +155,7 @@ bool handle_put_user_request(request_t *req)
     return true;
 }
 
-bool handle_put_loan_film_request(request_t *req)
+bool handle_put_loan_film_request(request_t *req, int client_socket)
 {
     printf("PUT /loan/film request ricevuta...\n");
     // Aggiungi qui il codice per gestire la richiesta PUT
@@ -161,7 +165,7 @@ bool handle_put_loan_film_request(request_t *req)
     return true;
 }
 
-bool handle_put_loan_request(request_t *req)
+bool handle_put_loan_request(request_t *req, int client_socket)
 {
     printf("PUT /loan request ricevuta...\n");
     // Aggiungi qui il codice per gestire la richiesta PUT
@@ -177,7 +181,7 @@ bool handle_put_loan_request(request_t *req)
 /*------------------------ DELETE REQUESTS -------------------------*/
 /*------------------------------------------------------------------*/
 
-bool handle_delete_user_request(request_t *req)
+bool handle_delete_user_request(request_t *req, int client_socket)
 {
     printf("DELETE /user request ricevuta...\n");
     // Aggiungi qui il codice per gestire la richiesta DELETE
