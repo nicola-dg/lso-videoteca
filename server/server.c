@@ -3,6 +3,6 @@
 int main()
 {
     printf("Starting server...\n");
-    start_server(8080);
+    start_server(3000);
     return 0;
 }

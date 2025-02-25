@@ -34,19 +34,36 @@ bool send_response(response_t *res, int client_socket)
     if (!res)
         return false;
 
-    // Serializza la risposta in formato JSON
+    // Serialize response
     char *json_string = serialize_response(res);
-
     if (!json_string)
+        return false;
+
+    // Append newline
+    char *json_with_newline = malloc(strlen(json_string) + 2); // +2 for '\n' and '\0'
+    if (!json_with_newline)
     {
+        free(json_string);
         return false;
     }
+    sprintf(json_with_newline, "%s\n", json_string);
+    free(json_string);
+    json_string = json_with_newline;
 
-    // Invia la stringa JSON attraverso la socket
-    pthread_t tid = pthread_self();
-    printf("sending response from thread-%ld to client-%d\n", tid, client_socket);
-    size_t bytes_sent = send(client_socket, json_string, strlen(json_string), 0);
+    // Ensure full transmission
+    size_t total_sent = 0;
+    size_t to_send = strlen(json_string);
+    while (total_sent < to_send)
+    {
+        ssize_t bytes = send(client_socket, json_string + total_sent, to_send - total_sent, 0);
+        if (bytes <= 0)
+        {
+            free(json_string);
+            return false; // Error sending data
+        }
+        total_sent += bytes;
+    }
 
-    free(json_string);                        // Libera la memoria allocata per la stringa JSON
-    return bytes_sent == strlen(json_string); // Verifica che siano stati inviati tutti i byte
+    free(json_string);
+    return true;
 }
