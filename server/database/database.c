@@ -136,8 +136,8 @@ void prepare_insert_statements()
 
     // Statement per inserire un utente
     res = PQprepare(conn, "insert_user",
-                    "INSERT INTO users (username, password, email, name, surname, max_loans) VALUES ($1, $2, $3, $4, $5, $6);",
-                    6, NULL);
+                    "INSERT INTO users (username, password, email, name, surname) VALUES ($1, $2, $3, $4, $5);",
+                    5, NULL);
     PQclear(res);
 
     // Statement per inserire un film
@@ -159,10 +159,10 @@ void prepare_insert_statements()
     PQclear(res);
 }
 
-void insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, int max_loans)
+void insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname)
 {
-    const char *paramValues[6] = {username, password, email, name, surname, (const char *)&max_loans};
-    execute_prepared_statement("insert_user", 6, paramValues);
+    const char *paramValues[5] = {username, password, email, name, surname};
+    execute_prepared_statement("insert_user", 5, paramValues);
 }
 
 void insert_movie(const char *title, const char *genre, int total_copies, int available_copies, int loan_count)

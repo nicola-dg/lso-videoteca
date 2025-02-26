@@ -1,9 +1,12 @@
 #pragma once
 #include "../types/request_type.h"
+#include "../types/user_type.h"
 #include "../request_response/request_print.h"
 #include "../request_response/response.h"
 #include "../jwt/jwt.h"
+#include "../database/database.h"
 #include <stdbool.h>
+
 
 /*---------------------- POST --------------------------*/
 bool handle_post_user_request(request_t *req, int client_socket);

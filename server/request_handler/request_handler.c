@@ -8,8 +8,18 @@ bool handle_post_user_request(request_t *req, int client_socket)
 {
     printf("Controllo che user sia formattato correttamente..\n");
     printf("Aggiungo nuovo user..\n");
+
+    user_t *user = extract_user_from_json(req->payload);
     // Aggiungi qui il codice per gestire la richiesta POST
     print_request(req);
+
+    printf("username->%s\n", user->username);
+    printf("name->%s\n", user->name);
+    printf("surname->%s\n", user->surname);
+    printf("email->%s\n", user->email);
+    printf("password->%s\n", user->password);
+
+    insert_user(user->name, user->password, user->email, user->name, user->surname);
 
     // liberare la memoria della request (free_request(req))
     return true;
@@ -68,7 +78,7 @@ bool handle_get_user_request(request_t *req, int client_socket)
     jwt_free(jwt);
     free_request(req);
     free_response(res);
-    
+
     return true;
 }
 

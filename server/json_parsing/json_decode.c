@@ -2,7 +2,6 @@
 
 #include "json.h"
 
-
 bool extract_method(json_t *root, request_t *req)
 {
     json_t *method_json = json_object_get(root, "method");
@@ -131,4 +130,43 @@ request_t *decode(char *json_str)
     json_decref(root);
 
     return req;
+}
+
+user_t *extract_user_from_json(char *json_payload)
+{
+    if (!json_payload)
+        return NULL; // Controllo parametri nulli
+
+    json_t *root;
+    json_error_t error;
+
+    root = json_loads(json_payload, 0, &error);
+    if (!root)
+    {
+        fprintf(stderr, "Errore nel parsing JSON: %s\n", error.text);
+        return -1;
+    }
+
+    user_t *user = (user_t *)malloc(sizeof(user_t));
+
+    const char *value;
+
+    if ((value = json_string_value(json_object_get(root, "username"))))
+        snprintf(user->username, sizeof(user->username), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "password"))))
+        snprintf(user->password, sizeof(user->password), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "email"))))
+        snprintf(user->email, sizeof(user->email), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "name"))))
+        snprintf(user->name, sizeof(user->name), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "surname"))))
+        snprintf(user->surname, sizeof(user->surname), "%s", value);
+
+    json_decref(root); // Libera la memoria allocata da jansson
+
+    return user;
 }

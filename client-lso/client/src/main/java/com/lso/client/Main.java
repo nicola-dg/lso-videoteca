@@ -3,6 +3,7 @@ package com.lso.client;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Component;
 
+import com.lso.client.DTO.UserDTO;
 import com.lso.client.service.RequestService;
 import com.lso.client.service.ResponseService;
 import com.lso.client.service.RequestService.Request;
@@ -37,10 +38,19 @@ public class Main {
             //                                                                                         .toString())));
 
 
-            System.out.println(requestService.sendRequest(requestService.createRequest()
-                                                        .setMethod(Method.GET)
-                                                        .setPath("/user")
-                                                        .setPayload("{\\\"random\\\":\\\"paylaod\\\"}")));
+            // System.out.println(requestService.sendRequest(requestService.createRequest()
+            //                                             .setMethod(Method.GET)
+            //                                             .setPath("/user")
+            //                                             .setPayload("{\\\"random\\\":\\\"paylaod\\\"}")));
+
+
+            UserDTO userDTO = new UserDTO();
+            userDTO.setName("Nicola");
+            userDTO.setUsername("nico");
+            userDTO.setSurname("dangelo");
+            userDTO.setPassword("password");
+
+            System.out.println(userDTO.toJSON());
 
         } catch (Exception e) {
             System.out.println("error");

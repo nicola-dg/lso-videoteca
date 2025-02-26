@@ -19,7 +19,7 @@ void prepare_update_statements();
 void prepare_delete_statements();
 
 // Funzioni per l'inserimento dei dati
-void insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, int max_loans);
+void insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname);
 void insert_movie(const char *title, const char *genre, int total_copies, int available_copies, int loan_count);
 void insert_loan(int movie_id, int user_id, const char *due_date);
 void insert_cart(int movie_id, int user_id, const char *checkout_date);

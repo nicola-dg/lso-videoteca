@@ -12,6 +12,7 @@ void *handle_client(void *client_void_ptr)
     char buffer[BUFFERSIZE] = {0};
     int bytesRead;
 
+    database_start(true);
     /*-------------------------------------------------*/
     /*----------LOGICA CONNESSIONE DATABASE------------*/
     /*-------------------------------------------------*/

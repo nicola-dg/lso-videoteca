@@ -4,7 +4,9 @@
         "socket.h": "c",
         "unistd.h": "c",
         "request_print.h": "c",
-        "jwt.h": "c"
+        "jwt.h": "c",
+        "json.h": "c"
     },
-    "makefile.configureOnOpen": false
+    "makefile.configureOnOpen": false,
+    "java.compile.nullAnalysis.mode": "automatic"
 }
