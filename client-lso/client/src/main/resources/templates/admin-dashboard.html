@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>VideoVault - Dashboard Admin</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="sidebar">
+    <div class="logo">
+      <i data-feather="film" class="logo-icon"></i>
+      <span>Videoteca</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#dashboard" class="nav-item active">
+        <i data-feather="home"></i>
+        Dashboard
+      </a>
+      <a href="#users" class="nav-item">
+        <i data-feather="users"></i>
+        Utenti
+      </a>
+      <a href="#movies" class="nav-item">
+        <i data-feather="film"></i>
+        Catalogo Film
+      </a>
+      <a href="#add-movie" class="nav-item">
+        <i data-feather="plus-circle"></i>
+        Aggiungi Film
+      </a>
+      <a href="#statistics" class="nav-item">
+        <i data-feather="bar-chart-2"></i>
+        Statistiche
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+    <header class="top-bar">
+      <h1>Dashboard Admin</h1>
+      <div class="user-menu">
+        <span>Admin</span>
+        <i data-feather="user"></i>
+      </div>
+    </header>
+
+    <section id="dashboard" class="dashboard-section">
+      <h2>Panoramica</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Utenti Totali</h3>
+          <p class="stat-number" th:text="${totalUsers}">1,234</p>
+        </div>
+        <div class="stat-card">
+          <h3>Film a Catalogo</h3>
+          <p class="stat-number" th:text="${totalMovies}">567</p>
+        </div>
+        <div class="stat-card">
+          <h3>Noleggi Attivi</h3>
+          <p class="stat-number" th:text="${activeRentals}">89</p>
+        </div>
+        <div class="stat-card">
+          <h3>Noleggi Scaduti</h3>
+          <p class="stat-number" th:text="${expiredRentals}">12</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="users" class="dashboard-section">
+      <h2>Utenti con Noleggi Scaduti</h2>
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Utente</th>
+          <th>Email</th>
+          <th>Film Scaduto</th>
+          <th>Data Scadenza</th>
+          <th>Azioni</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="rental : ${expiredRentalsList}">
+          <td th:text="${rental.userName}">Mario Rossi</td>
+          <td th:text="${rental.userEmail}">mario@example.com</td>
+          <td th:text="${rental.movieTitle}">Inception</td>
+          <td th:text="${rental.expiryDate}">2024-02-01</td>
+          <td>
+            <button class="btn btn-primary send-reminder" th:attr="data-user-id=${rental.userId}">
+              Invia Promemoria
+            </button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="movies" class="dashboard-section">
+      <h2>Catalogo Film</h2>
+      <table class="data-table">
+        <thead>
+        <tr>
+          <th>Titolo</th>
+          <th>Genere</th>
+          <th>Copie Totali</th>
+          <th>Copie Disponibili</th>
+          <th>Azioni</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="movie : ${moviesList}">
+          <td th:text="${movie.title}">Inception</td>
+          <td th:text="${movie.genre}">Sci-Fi</td>
+          <td th:text="${movie.totalCopies}">10</td>
+          <td th:text="${movie.availableCopies}">3</td>
+          <td>
+            <button class="btn btn-secondary edit-movie" th:attr="data-movie-id=${movie.id}">
+              Modifica
+            </button>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="add-movie" class="dashboard-section">
+      <h2>Aggiungi Nuovo Film</h2>
+      <form class="add-movie-form">
+        <div class="form-group">
+          <label for="movieTitle">Titolo</label>
+          <input type="text" id="movieTitle" name="title" required>
+        </div>
+        <div class="form-group">
+          <label for="movieGenre">Genere</label>
+          <input type="text" id="movieGenre" name="genre" required>
+        </div>
+        <div class="form-group">
+          <label for="movieCopies">Numero di Copie</label>
+          <input type="number" id="movieCopies" name="copies" required min="1">
+        </div>
+        <div class="form-group">
+          <label for="moviePrice">Prezzo Noleggio</label>
+          <input type="number" id="moviePrice" name="price" required min="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label for="moviePoster">Locandina</label>
+          <input type="file" id="moviePoster" name="poster" accept="image/*">
+        </div>
+        <button type="submit" class="btn btn-primary">Aggiungi Film</button>
+      </form>
+    </section>
+
+    <section id="statistics" class="dashboard-section">
+      <h2>Statistiche</h2>
+      <div class="charts-container">
+        <div class="chart-card">
+          <h3>Noleggi per Genere</h3>
+          <canvas id="genreChart"></canvas>
+        </div>
+        <div class="chart-card">
+          <h3>Trend Noleggi Ultimi 30 Giorni</h3>
+          <canvas id="rentalTrendChart"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  feather.replace();
+
+  // Logica per l'invio dei promemoria
+  document.querySelectorAll('.send-reminder').forEach(button => {
+    button.addEventListener('click', function() {
+      const userId = this.getAttribute('data-user-id');
+      // Implementa la logica per inviare il promemoria
+      console.log('Invio promemoria all\'utente:', userId);
+      alert('Promemoria inviato con successo!');
+    });
+  });
+
+  // Logica per la modifica dei film
+  document.querySelectorAll('.edit-movie').forEach(button => {
+    button.addEventListener('click', function() {
+      const movieId = this.getAttribute('data-movie-id');
+      // Implementa la logica per modificare il film
+      console.log('Modifica film:', movieId);
+      // Qui potresti aprire un modal o reindirizzare a una pagina di modifica
+    });
+  });
+
+  // Gestione del form per l'aggiunta di un nuovo film
+  document.querySelector('.add-movie-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Implementa la logica per aggiungere un nuovo film
+    console.log('Nuovo film aggiunto');
+    alert('Film aggiunto con successo!');
+    this.reset();
+  });
+
+  // Creazione dei grafici
+  const genreCtx = document.getElementById('genreChart').getContext('2d');
+  new Chart(genreCtx, {
+    type: 'pie',
+    data: {
+      labels: ['Azione', 'Commedia', 'Drammatico', 'Sci-Fi', 'Horror'],
+      datasets: [{
+        data: [30, 25, 20, 15, 10],
+        backgroundColor: ['#4361ee', '#3a0ca3', '#7209b7', '#f72585', '#4cc9f0']
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+        }
+      }
+    }
+  });
+
+  const trendCtx = document.getElementById('rentalTrendChart').getContext('2d');
+  new Chart(trendCtx, {
+    type: 'line',
+    data: {
+      labels: [...Array(30).keys()].map(i => `Giorno ${i+1}`),
+      datasets: [{
+        label: 'Noleggi',
+        data: [...Array(30)].map(() => Math.floor(Math.random() * 50) + 10),
+        borderColor: '#4361ee',
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: true,
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+</script>
+</body>
+</html>

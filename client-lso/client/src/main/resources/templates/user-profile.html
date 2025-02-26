@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>VideoVault - Profilo Utente</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" th:href="@{/css/user-profile.css}">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+<header class="header">
+  <nav class="nav-container">
+    <div class="logo">
+      <i data-feather="film" class="logo-icon"></i>
+      <span>VideoVault</span>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="nav-link">Home</a>
+      <a href="#" class="nav-link">Catalogo</a>
+      <a href="#" class="nav-link active">Il Mio Account</a>
+      <a href="#" class="nav-link logout-btn">Logout</a>
+    </div>
+  </nav>
+</header>
+
+<main class="main-content">
+  <div class="profile-header">
+    <h1>Profilo Utente</h1>
+    <div class="user-info">
+      <img src="/placeholder-user.jpg" alt="User Avatar" class="user-avatar">
+      <div>
+        <h2 th:text="${user.name}">Mario Rossi</h2>
+        <p th:text="${user.email}">mario.rossi@example.com</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-sections">
+    <section class="profile-section">
+      <h2>Film Noleggiati</h2>
+      <div class="rented-movies">
+        <div th:each="rental : ${rentedMovies}" class="movie-card">
+          <img th:src="${rental.movieImageUrl}" alt="Movie Poster" class="movie-poster">
+          <div class="movie-info">
+            <h3 th:text="${rental.movieTitle}">Titolo Film</h3>
+            <p>Scadenza: <span th:text="${rental.expiryDate}">2024-03-15</span></p>
+            <p class="rental-status" th:classappend="${rental.isExpired ? 'expired' : ''}">
+              <span th:text="${rental.isExpired ? 'Scaduto' : 'Attivo'}">Attivo</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h2>Messaggi dall'Admin</h2>
+      <div class="admin-messages">
+        <div th:each="message : ${adminMessages}" class="message">
+          <p class="message-date" th:text="${message.date}">2024-02-10</p>
+          <p class="message-content" th:text="${message.content}">
+            Gentile utente, il noleggio del film "Inception" è scaduto. La preghiamo di restituirlo o rinnovare il noleggio.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="profile-section">
+      <h2>Impostazioni Account</h2>
+      <form id="change-password-form" class="settings-form">
+        <div class="form-group">
+          <label for="currentPassword">Password Attuale</label>
+          <input type="password" id="currentPassword" name="currentPassword" required>
+        </div>
+        <div class="form-group">
+          <label for="newPassword">Nuova Password</label>
+          <input type="password" id="newPassword" name="newPassword" required>
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Conferma Nuova Password</label>
+          <input type="password" id="confirmPassword" name="confirmPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Cambia Password</button>
+      </form>
+    </section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <div class="logo">
+        <i data-feather="film"></i>
+        <span>VideoVault</span>
+      </div>
+      <p>La tua videoteca digitale personale</p>
+    </div>
+    <div class="footer-section">
+      <h4>Link Utili</h4>
+      <a href="#">Catalogo</a>
+      <a href="#">Il Mio Account</a>
+      <a href="#">FAQ</a>
+    </div>
+    <div class="footer-section">
+      <h4>Assistenza</h4>
+      <a href="#">Contattaci</a>
+      <a href="#">Termini di Servizio</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2024 VideoVault. Tutti i diritti riservati.</p>
+  </div>
+</footer>
+
+
+</body>
+</html>

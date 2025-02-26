@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Videoteca </title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" th:href="@{/css/landing.css}">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+<header class="header">
+  <nav class="nav-container">
+    <div class="logo">
+      <i data-feather="film" class="logo-icon"></i>
+      <span>Videoteca</span>
+    </div>
+    <div class="nav-links">
+      <a th:href="@{/login}" class="login-btn">Accedi</a>
+      <a th:href="@{/register}" class="register-btn">Registrati</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>La tua videoteca digitale,<br>semplice e organizzata</h1>
+      <p>Gestisci la tua collezione di film, noleggia facilmente e ricevi notifiche per le restituzioni. Un'interfaccia intuitiva per un'esperienza unica.</p>
+      <div class="hero-buttons">
+        <a th:href="@{/register}" class="cta-button">Registrati ora</a>
+        <a th:href="@{/login}" class="cta-button">Accedi al tuo account</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img th:src="@{/images/hero-dashboard.png}" alt="VideoVault Dashboard" class="dashboard-preview">
+    </div>
+  </section>
+
+
+  <!-- Features Section -->
+  <section id="features" class="features">
+    <h2>Funzionalità Principali</h2>
+    <div class="features-grid">
+      <div class="feature-card">
+        <i data-feather="search" class="feature-icon"></i>
+        <h3>Ricerca Avanzata</h3>
+        <p>Cerca film facilmente per titolo, genere, o popolarità e trova rapidamente ciò che desideri noleggiare</p>
+      </div>
+      <div class="feature-card">
+        <i data-feather="folder" class="feature-icon"></i>
+        <h3>Gestione Collezioni</h3>
+        <p>Organizza i tuoi film in categorie personalizzate e tieni traccia dei tuoi noleggi</p>
+      </div>
+      <div class="feature-card">
+        <i data-feather="bar-chart-2" class="feature-icon"></i>
+        <h3>Statistiche di Noleggio</h3>
+        <p>Monitora i tuoi noleggi e ricevi suggerimenti basati sulle tue abitudini di visione</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- How it Works Section -->
+  <section id="how-it-works" class="how-it-works">
+    <h2>Come Funziona</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Registrati</h3>
+        <p>Crea un account gratuito per iniziare a noleggiare i film della tua videoteca</p>
+      </div>
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Esplora i Film</h3>
+        <p>Cerca e scopri film da aggiungere al tuo carrello, pronti per il noleggio</p>
+      </div>
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Noleggia e Gestisci</h3>
+        <p>Aggiungi film al carrello, noleggiali e tieni traccia delle scadenze di restituzione</p>
+      </div>
+    </div>
+  </section>
+
+
+
+  <!-- CTA Section -->
+  <section class="cta">
+    <h2>Pronto a organizzare la tua videoteca?</h2>
+    <p>Unisciti a migliaia di appassionati di cinema che già utilizzano Videoteca</p>
+    <a th:href="@{/register}" class="cta-button">Inizia Ora</a>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <div class="logo">
+        <i data-feather="film"></i>
+        <span>VideoVault</span>
+      </div>
+      <p>La tua videoteca digitale personale</p>
+    </div>
+    <div class="footer-section">
+      <h4>Link Utili</h4>
+      <a href="#features">Funzionalità</a>
+      <a href="#pricing">Prezzi</a>
+      <a href="#how-it-works">Come Funziona</a>
+    </div>
+    <div class="footer-section">
+      <h4>Legale</h4>
+      <a href="/privacy">Privacy Policy</a>
+      <a href="/terms">Termini di Servizio</a>
+    </div>
+    <div class="footer-section">
+      <h4>Social</h4>
+      <div class="social-links">
+        <a href="#" aria-label="Twitter"><i data-feather="twitter"></i></a>
+        <a href="#" aria-label="Instagram"><i data-feather="instagram"></i></a>
+        <a href="#" aria-label="Facebook"><i data-feather="facebook"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2024 VideoVault. Tutti i diritti riservati.</p>
+  </div>
+</footer>
+
+<script>
+  feather.replace();
+</script>
+</body>
+</html>

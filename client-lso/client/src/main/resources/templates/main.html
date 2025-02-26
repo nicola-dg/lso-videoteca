@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Videoteca</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" th:href="@{/css/mainPage.css}">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+<header class="header">
+  <nav class="nav-container">
+    <div class="logo">
+      <i data-feather="film" class="logo-icon"></i>
+      <span>Videoteca</span>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="nav-link">Home</a>
+      <a href="#" class="nav-link">Catalogo</a>
+      <a href="#" class="nav-link">Il Mio Account</a>
+      <a href="#" class="nav-link logout-btn">Logout</a>
+    </div>
+  </nav>
+</header>
+
+<main class="main-content">
+
+  <aside class="sidebar right-sidebar">
+    <h2>Filtri</h2>
+    <form id="filter-form">
+      <div class="form-group">
+        <label for="search">Cerca per titolo:</label>
+        <input type="text" id="search" name="search" placeholder="Titolo del film">
+      </div>
+      <div class="form-group">
+        <label for="genre">Genere:</label>
+        <select id="genre" name="genre">
+          <option value="">Tutti i generi</option>
+          <option value="action">Azione</option>
+          <option value="comedy">Commedia</option>
+          <option value="drama">Drammatico</option>
+          <option value="scifi">Fantascienza</option>
+          <!-- Aggiungi altri generi secondo necessità -->
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="sort">Ordina per:</label>
+        <select id="sort" name="sort">
+          <option value="popularity">Popolarità</option>
+          <option value="title">Titolo</option>
+          <option value="release_date">Data di uscita</option>
+        </select>
+      </div>
+      <button type="submit" class="cta-button">Applica Filtri</button>
+    </form>
+  </aside>
+  <section class="movie-catalog">
+    <h1>Catalogo Film</h1>
+    <div class="movie-grid">
+      <div th:each="movie : ${movies}" class="movie-card">
+        <img th:src="${movie.imageUrl}" th:alt="${movie.title}" class="movie-poster">
+        <h3 th:text="${movie.title}">Titolo Film</h3>
+        <p th:text="${movie.genre}">Genere</p>
+        <p>Copie disponibili: <span th:text="${movie.availableCopies}">5</span></p>
+        <p>Prezzo: <span th:text="${movie.price}">€4.99</span></p>
+        <button class="add-to-cart-btn" th:attr="data-movie-id=${movie.id}">Aggiungi al Carrello</button>
+      </div>
+    </div>
+  </section>
+
+
+  <aside class="sidebar left-sidebar">
+    <h2>Il Mio Carrello</h2>
+    <div id="cart-items">
+      <!-- Carrello vuoto inizialmente -->
+      <p>Il tuo carrello è vuoto</p>
+    </div>
+    <div class="cart-total">
+      <p>Totale: <span id="cart-total">€0.00</span></p>
+    </div>
+    <button class="cta-button" id="checkout-btn">Procedi al Checkout</button>
+  </aside>
+</main>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <div class="logo">
+        <i data-feather="film"></i>
+        <span>Videoteca</span>
+      </div>
+      <p>La tua videoteca digitale personale</p>
+    </div>
+    <div class="footer-section">
+      <h4>Link Utili</h4>
+      <a href="#">Catalogo</a>
+      <a href="#">Il Mio Account</a>
+    </div>
+    <div class="footer-section">
+      <h4>Assistenza</h4>
+      <a href="#">Contattaci</a>
+      <a href="#">Termini di Servizio</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2024 Videoteca. Tutti i diritti riservati.</p>
+  </div>
+</footer>
+
+
+</body>
+</html>

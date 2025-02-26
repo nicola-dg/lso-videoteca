@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<nav th:fragment="navbar" class="navbar">
+  <div class="navbar-container">
+    <div class="navbar-logo">
+      <a href="/">
+        <i data-feather="film"></i>
+        <span>VideoVault</span>
+      </a>
+    </div>
+    <ul class="navbar-links">
+      <li><a href="/" th:classappend="${#httpServletRequest.getRequestURI() == '/' ? 'active' : ''}">Home</a></li>
+      <li><a href="/catalog" th:classappend="${#httpServletRequest.getRequestURI() == '/catalog' ? 'active' : ''}">Catalogo</a></li>
+      <li><a href="/about" th:classappend="${#httpServletRequest.getRequestURI() == '/about' ? 'active' : ''}">Chi Siamo</a></li>
+      <li><a href="/contact" th:classappend="${#httpServletRequest.getRequestURI() == '/contact' ? 'active' : ''}">Contatti</a></li>
+    </ul>
+    <div class="navbar-actions">
+      <a href="/cart" class="cart-icon" aria-label="Carrello">
+        <i data-feather="shopping-cart"></i>
+        <span class="cart-count" th:text="${cartCount}">0</span>
+      </a>
+      <div class="user-menu" th:if="${user != null}">
+        <button class="user-menu-button">
+          <i data-feather="user"></i>
+          <span th:text="${user.username}">Username</span>
+        </button>
+        <div class="user-dropdown">
+          <a href="/dashboard">Dashboard</a>
+          <a href="/profile">Profilo</a>
+          <a href="/logout">Logout</a>
+        </div>
+      </div>
+      <a href="/login" class="login-btn" th:if="${user == null}">Accedi</a>
+    </div>
+  </div>
+</nav>
+</body>
+</html>
+

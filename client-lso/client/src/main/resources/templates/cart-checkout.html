@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>VideoVault - Carrello e Checkout</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" th:href="@{/css/cart-checkout.css}">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+<header class="header">
+  <nav class="nav-container">
+    <div class="logo">
+      <i data-feather="film" class="logo-icon"></i>
+      <span>VideoVault</span>
+    </div>
+    <div class="nav-links">
+      <a href="#" class="nav-link">Home</a>
+      <a href="#" class="nav-link">Catalogo</a>
+      <a href="#" class="nav-link">Il Mio Account</a>
+      <a href="#" class="nav-link logout-btn">Logout</a>
+    </div>
+  </nav>
+</header>
+
+<main class="main-content">
+  <h1>Il Tuo Carrello</h1>
+
+  <div class="cart-container">
+    <div class="cart-items">
+      <div th:each="item : ${cartItems}" class="cart-item">
+        <img th:src="${item.imageUrl}" alt="Movie Poster" class="item-image">
+        <div class="item-details">
+          <h3 th:text="${item.title}">Titolo Film</h3>
+          <p>Durata noleggio: <span th:text="${item.rentalDuration}">7 giorni</span></p>
+          <p>Prezzo: <span th:text="${item.price}">€4.99</span></p>
+        </div>
+        <button class="remove-item" th:attr="data-item-id=${item.id}">
+          <i data-feather="x"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="cart-summary">
+      <h2>Riepilogo Ordine</h2>
+      <div class="summary-item">
+        <span>Totale Film:</span>
+        <span th:text="${cartTotal}">€14.97</span>
+      </div>
+      <div class="summary-item">
+        <span>Sconto:</span>
+        <span th:text="${discount}">-€2.00</span>
+      </div>
+      <div class="summary-item total">
+        <span>Totale da Pagare:</span>
+        <span th:text="${finalTotal}">€12.97</span>
+      </div>
+      <button id="checkout-btn" class="btn btn-primary">Procedi al Checkout</button>
+    </div>
+  </div>
+
+  <div id="checkout-form" class="checkout-form hidden">
+    <h2>Completa il Noleggio</h2>
+    <form>
+      <div class="form-group">
+        <label for="cardName">Nome sulla Carta</label>
+        <input type="text" id="cardName" name="cardName" required>
+      </div>
+      <div class="form-group">
+        <label for="cardNumber">Numero Carta</label>
+        <input type="text" id="cardNumber" name="cardNumber" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="expiryDate">Data di Scadenza</label>
+          <input type="text" id="expiryDate" name="expiryDate" placeholder="MM/YY" required>
+        </div>
+        <div class="form-group">
+          <label for="cvv">CVV</label>
+          <input type="text" id="cvv" name="cvv" required>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">Conferma Noleggio</button>
+    </form>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-section">
+      <div class="logo">
+        <i data-feather="film"></i>
+        <span>VideoVault</span>
+      </div>
+      <p>La tua videoteca digitale personale</p>
+    </div>
+    <div class="footer-section">
+      <h4>Link Utili</h4>
+      <a href="#">Catalogo</a>
+      <a href="#">Il Mio Account</a>
+      <a href="#">FAQ</a>
+    </div>
+    <div class="footer-section">
+      <h4>Assistenza</h4>
+      <a href="#">Contattaci</a>
+      <a href="#">Termini di Servizio</a>
+      <a href="#">Privacy Policy</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>&copy; 2024 VideoVault. Tutti i diritti riservati.</p>
+  </div>
+</footer>
+
+
+</body>
+</html>
