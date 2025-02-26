@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/socket",
-                ""
+                "",
+                "/usr/include/postgresql"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",
