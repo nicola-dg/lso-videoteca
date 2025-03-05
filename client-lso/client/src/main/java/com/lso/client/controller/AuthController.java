@@ -22,7 +22,6 @@ public class AuthController {
     private RequestService requestService;
     private SocketClient socket;
 
-
     public AuthController(RequestService requestService, SocketClient socket) {
         this.requestService = requestService;
         this.socket = socket;
@@ -48,7 +47,7 @@ public class AuthController {
             System.out.println("success");
             session.setAttribute("jwt", res.getPayload());
             System.out.println("jwt recuperato: " + session.getAttribute("jwt"));
-            return "redirect:/movies";
+            return "redirect:/user";
         } else {
             socket.close();
             model.addAttribute("error", "Credenziali errate");
@@ -86,16 +85,7 @@ public class AuthController {
         }
     }
 
-
-    @PutMapping("/user")
-    public String updateUser(){
-        return null;
-    }
-
-    @DeleteMapping("/user")
-    public String deleteUser(){
-        return null;
-    }
+   
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {
@@ -103,4 +93,5 @@ public class AuthController {
         session.invalidate();
         return "redirect:/login";
     }
+
 }

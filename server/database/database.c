@@ -71,7 +71,7 @@ void create_tables()
         "role TEXT, "
         "max_loans INTEGER DEFAULT 3);",
 
-        "CREATE TABLE IF NOT EXISTS movies ("
+        "CREATE TABLE IF NOT EXISTS films ("
         "id SERIAL PRIMARY KEY, "
         "title TEXT NOT NULL, "
         "genre TEXT, "
@@ -81,7 +81,7 @@ void create_tables()
 
         "CREATE TABLE IF NOT EXISTS loans ("
         "id SERIAL PRIMARY KEY, "
-        "movie_id INTEGER REFERENCES movies(id) ON DELETE CASCADE, "
+        "film_id INTEGER REFERENCES movies(id) ON DELETE CASCADE, "
         "user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, "
         "checkout_date TIMESTAMP DEFAULT NOW(),"
         "due_date TIMESTAMP, "
@@ -89,7 +89,7 @@ void create_tables()
 
         "CREATE TABLE IF NOT EXISTS carts ("
         "id SERIAL PRIMARY KEY, "
-        "movie_id INTEGER REFERENCES movies(id) ON DELETE CASCADE, "
+        "mfilm_id INTEGER REFERENCES movies(id) ON DELETE CASCADE, "
         "user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, "
         "checkout_date TIMESTAMP DEFAULT NOW());"};
 
@@ -328,6 +328,12 @@ void prepare_select_statements()
                     "SELECT id, username, email, name, surname FROM users WHERE username = $1 AND password = crypt($2, password);",
                     2, NULL);
     PQclear(res);
+
+    // Query preparata per selezionare tutti i film
+    res = PQprepare(conn, "select_all_films",
+                    "SELECT id, title, genre, total_copies, available_copies, loan_count FROM movies;",
+                    0, NULL);
+    PQclear(res);
 }
 
 void select_all_users()
@@ -420,6 +426,43 @@ bool select_user_by_username_and_password(const char *username, const char *pass
 
     PQclear(res);
     return true;
+}
+
+char *select_all_films()
+{
+    PGresult *res = PQexecPrepared(conn, "select_all_films", 0, NULL, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        fprintf(stderr, "Errore nell'esecuzione della SELECT: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return NULL;
+    }
+
+    int rows = PQntuples(res);         // Numero di righe restituite
+    json_t *film_array = json_array(); // Array JSON per contenere i film
+
+    for (int i = 0; i < rows; i++)
+    {
+        json_t *film_json = json_object(); // Oggetto JSON per un singolo film
+
+        json_object_set_new(film_json, "id", json_string(PQgetvalue(res, i, 0)));
+        json_object_set_new(film_json, "title", json_string(PQgetvalue(res, i, 1)));
+        json_object_set_new(film_json, "genre", json_string(PQgetvalue(res, i, 2)));
+        json_object_set_new(film_json, "total_copies", json_string(PQgetvalue(res, i, 3)));
+        json_object_set_new(film_json, "available_copies", json_string(PQgetvalue(res, i, 4)));
+        json_object_set_new(film_json, "loan_count", json_string(PQgetvalue(res, i, 5)));
+
+        json_array_append_new(film_array, film_json); // Aggiunge il film all'array JSON
+    }
+
+    PQclear(res); // Libera il risultato della query
+
+    // Converti il JSON in una stringa (il chiamante deve liberare la memoria con `free`)
+    char *json_string_result = json_dumps(film_array, JSON_INDENT(4));
+    json_decref(film_array); // Libera la struttura JSON (ma non la stringa)
+
+    return json_string_result;
 }
 
 void database_close_connection()

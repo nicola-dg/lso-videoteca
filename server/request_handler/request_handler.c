@@ -99,7 +99,23 @@ bool handle_get_film_request(request_t *req, int client_socket)
     // Aggiungi qui il codice per gestire la richiesta GET
     print_request(req);
 
-    // liberare la memoria della request (free_request(req))
+    response_t *res = init_response();
+    char* films = select_all_films();
+    if(films){
+        strcpy(res->status_code, "200");
+        strcpy(res->phrase, "Ok");
+        strcpy(res->payload, films);  
+    }else
+    {
+        strcpy(res->status_code, "500");
+        strcpy(res->phrase, "Server Error");
+    }
+
+
+    send_response(res, client_socket);
+    free_request(req);
+    free_response(res);
+
     return true;
 }
 

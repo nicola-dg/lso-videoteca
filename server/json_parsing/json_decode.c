@@ -2,6 +2,10 @@
 
 #include "json.h"
 
+/*--------------------------------------------------*/
+/*-----------------REQUEST DECODING-----------------*/
+/*--------------------------------------------------*/
+
 bool extract_method(json_t *root, request_t *req)
 {
     json_t *method_json = json_object_get(root, "method");
@@ -131,6 +135,9 @@ request_t *decode(char *json_str)
 
     return req;
 }
+/*--------------------------------------------------*/
+/*-------------------USER DECODING------------------*/
+/*--------------------------------------------------*/
 
 user_t *extract_user_from_json(char *json_payload)
 {
@@ -178,3 +185,5 @@ user_t *extract_user_from_json(char *json_payload)
 
     return user;
 }
+
+

@@ -1,4 +1,5 @@
 package com.lso.client.controller;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -22,8 +23,7 @@ public class LandingController {
 
     @GetMapping("/user")
     public String dashboard() {
-        return "user-profile";
+        return "user-profile-test";
     };
-
 
 }

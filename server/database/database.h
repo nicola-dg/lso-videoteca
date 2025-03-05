@@ -2,6 +2,7 @@
 
 #include <libpq-fe.h>
 #include <stdbool.h>
+#include <jansson.h>
 
 // Funzioni per la connessione al database
 void database_connect();
@@ -38,10 +39,11 @@ void delete_loan(int loan_id);
 void delete_cart(int cart_id);
 
 // Funzione per leggere i dati
-// void read_data();
 void select_all_users();
 void select_user_by_id(int user_id);
 bool select_user_by_username_and_password(const char *username, const char *password);
+
+char *select_all_films();
 
 // Funzione di esecuzione di query preparate
 void execute_prepared_statement(const char *stmt_name, int nParams, const char **paramValues);

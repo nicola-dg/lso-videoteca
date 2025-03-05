@@ -5,6 +5,7 @@
 #include <string.h>
 #include "../types/request_type.h"
 #include "../types/user_type.h"
+#include "../types/film_type.h"
 #include "../request_response/request.h"
 
 // Funzioni per l'estrazione dei campi JSON dalla richiesta

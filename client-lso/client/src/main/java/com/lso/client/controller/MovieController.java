@@ -1,6 +1,10 @@
 package com.lso.client.controller;
 
+import com.lso.client.service.RequestService;
+import com.lso.client.service.ResponseService.Response;
 import com.lso.client.service.SocketClient;
+import com.lso.client.types.Method;
+
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -12,20 +16,27 @@ import java.io.IOException;
 @RequestMapping("/")
 public class MovieController {
 
+    private RequestService requestService;
+        private SocketClient socket;
+    
+        public MovieController(RequestService requestService, SocketClient socket) {
+            this.requestService = requestService;
+            this.socket = socket;
+        }
+
     @GetMapping("/home")
     public String getAllMovies(Model model, HttpSession session) {
-        SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-        if (userSocket == null)
-            return "redirect:/login";
+        // try {
+        //     Response response = userSocket.sendRequest("GET_ALL_MOVIES");
+        //     model.addAttribute("movies", response);
+        //     return "main";
+        // } catch (IOException e) {
+        //     model.addAttribute("error", "Errore di connessione");
+        //     return "main";
+        // }
+        Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/film"));
 
-        try {
-            String response = userSocket.sendRequest("GET_ALL_MOVIES");
-            model.addAttribute("movies", response);
-            return "main";
-        } catch (IOException e) {
-            model.addAttribute("error", "Errore di connessione");
-            return "main";
-        }
+        return "main";
     }
 
     @PostMapping("/add-movie")
