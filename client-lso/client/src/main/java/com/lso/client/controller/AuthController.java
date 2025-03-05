@@ -60,11 +60,11 @@ public class AuthController {
             return "registration";
         }
         UserDTO userDTO = new UserDTO();
-        userDTO.setEmail(form.getEmail());
         userDTO.setName(form.getNome());
         userDTO.setSurname(form.getCognome());
-        userDTO.setPassword(form.getPassword());
         userDTO.setUsername(form.getUsername());
+        userDTO.setEmail(form.getEmail());
+        userDTO.setPassword(form.getPassword());
 
         Response res = requestService.sendRequest(
                 requestService.createRequest().setMethod(Method.POST).setPath("/user").setPayload(userDTO.toJSON()));
