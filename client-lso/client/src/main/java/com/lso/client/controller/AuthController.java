@@ -22,15 +22,6 @@ public class AuthController {
     private RequestService requestService;
     private SocketClient socket;
 
-    private String jwt;
-
-    public String getJwt() {
-        return this.jwt;
-    }
-
-    public void setJwt(String jwt) {
-        this.jwt = jwt;
-    }
 
     public AuthController(RequestService requestService, SocketClient socket) {
         this.requestService = requestService;
@@ -55,8 +46,8 @@ public class AuthController {
                 .setPath("/user").setPayload(userDTO.toJSON()));
         if (res.getStatusCode().equals("200")) {
             System.out.println("success");
-            setJwt(res.getPayload());
-            System.out.println("jwt recuperato: " + getJwt());
+            session.setAttribute("jwt", res.getPayload());
+            System.out.println("jwt recuperato: " + session.getAttribute("jwt"));
             return "redirect:/movies";
         } else {
             socket.close();
@@ -95,12 +86,21 @@ public class AuthController {
         }
     }
 
-    // @GetMapping("/logout")
-    // public String logout(HttpSession session) {
-    // SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-    // if (userSocket != null)
-    // userSocket.close();
-    // session.invalidate();
-    // return "redirect:/login";
-    // }
+
+    @PutMapping("/user")
+    public String updateUser(){
+        return null;
+    }
+
+    @DeleteMapping("/user")
+    public String deleteUser(){
+        return null;
+    }
+
+    @GetMapping("/logout")
+    public String logout(HttpSession session) {
+        socket.close();
+        session.invalidate();
+        return "redirect:/login";
+    }
 }

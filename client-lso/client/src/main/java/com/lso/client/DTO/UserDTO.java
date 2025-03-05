@@ -7,9 +7,32 @@ public class UserDTO {
     String name;
     String surname;
     String role;
-
+    String id;
     Integer max_loans;
 
+    
+    
+    public UserDTO() {
+        
+    }
+    
+    public UserDTO(String username, String password, String email, String name, String surname, String role) {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.name = name;
+        this.surname = surname;
+        this.role = role;
+    }
+
+    public String getId() {
+        return this.id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+    
     public String getUsername() {
         return this.username;
     }
@@ -102,6 +125,11 @@ public class UserDTO {
             if (!first)
                 json.append(",");
             json.append("\\\"role\\\":").append(escapeString(role));
+        }
+        if (id != null) {
+            if (!first)
+                json.append(",");
+            json.append("\\\"id\\\":").append(escapeString(id));
         }
         if (max_loans != null) {
             if (!first)

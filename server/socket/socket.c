@@ -13,9 +13,6 @@ void *handle_client(void *client_void_ptr)
     int bytesRead;
 
     database_start(true);
-    /*-------------------------------------------------*/
-    /*----------LOGICA CONNESSIONE DATABASE------------*/
-    /*-------------------------------------------------*/
 
     // Ciclo per continuare a leggere finché il client non invia "Connection: close"
     while (1)
@@ -39,9 +36,6 @@ void *handle_client(void *client_void_ptr)
         // Visualizza i dati ricevuti
         printf("Received from client-%d:\n%s\n", client->socket, buffer);
 
-        /*-------------------------------------------------*/
-        /*-----------LOGICA PARSING RICHIESTA--------------*/
-        /*-------------------------------------------------*/
         request_t *req = decode(buffer);
         route_request(req, client->socket);
 
