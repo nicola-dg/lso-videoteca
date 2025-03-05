@@ -8,5 +8,6 @@
         "json.h": "c"
     },
     "makefile.configureOnOpen": false,
-    "java.compile.nullAnalysis.mode": "automatic"
+    "java.compile.nullAnalysis.mode": "automatic",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }

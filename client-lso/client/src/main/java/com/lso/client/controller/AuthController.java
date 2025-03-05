@@ -24,28 +24,29 @@ public class AuthController {
 
     public AuthController(RequestService requestService, SocketClient socket) {
         this.requestService = requestService;
-        this.socket=socket;
+        this.socket = socket;
     }
 
-    // @GetMapping("/login")
-    // public String showLoginForm(Model model) {
-    //     model.addAttribute("loginForm", new LoginForm());
-    //     return "login"; 
-    // }
+    @GetMapping("/login")
+    public String showLoginForm(Model model) {
+        model.addAttribute("loginForm", new LoginForm());
+        return "login";
+    }
 
-    // @PostMapping("/login")
-    // public String login(@ModelAttribute LoginForm form, Model model, HttpSession session) { 
-    //         Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.GET)
-    //                 .setPath("/user").setPayload("{\\\"username\\\":\\\"" + form.getUsername() + "\\\"}"));
-    //         if (res.getStatusCode().equals("200")) {
-    //             System.out.println("success");
-    //             return "redirect:/movies";
-    //         } else {
-    //             socket.close();
-    //             model.addAttribute("error", "Credenziali errate");
-    //             return "login";
-    //         }
-    // }
+    @PostMapping("/login")
+    public String login(@ModelAttribute LoginForm form, Model model, HttpSession session) {
+        Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.GET)
+                .setPath("/user").setPayload("{\\\"username\\\":\\\"" + form.getUsername() +
+                        "\\\"}"));
+        if (res.getStatusCode().equals("200")) {
+            System.out.println("success");
+            return "redirect:/movies";
+        } else {
+            socket.close();
+            model.addAttribute("error", "Credenziali errate");
+            return "login";
+        }
+    }
 
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
@@ -55,7 +56,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute RegistrationForm form, BindingResult result, Model model) {
-        if (result.hasErrors()){
+        if (result.hasErrors()) {
             return "registration";
         }
         UserDTO userDTO = new UserDTO();
@@ -65,7 +66,8 @@ public class AuthController {
         userDTO.setPassword(form.getPassword());
         userDTO.setUsername(form.getUsername());
 
-        Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.POST).setPath("/user").setPayload(userDTO.toJSON()));
+        Response res = requestService.sendRequest(
+                requestService.createRequest().setMethod(Method.POST).setPath("/user").setPayload(userDTO.toJSON()));
         if (res.getStatusCode().equals("200")) {
             System.out.println("register success");
             return "redirect:/login?registered";
@@ -77,10 +79,10 @@ public class AuthController {
 
     // @GetMapping("/logout")
     // public String logout(HttpSession session) {
-    //     SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-    //     if (userSocket != null)
-    //         userSocket.close();
-    //     session.invalidate();
-    //     return "redirect:/login";
+    // SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
+    // if (userSocket != null)
+    // userSocket.close();
+    // session.invalidate();
+    // return "redirect:/login";
     // }
 }

@@ -21,6 +21,15 @@ bool handle_post_user_request(request_t *req, int client_socket)
 
     insert_user(user->name, user->password, user->email, user->name, user->surname);
 
+    response_t *res = init_response();
+    strcpy(res->status_code, "200");
+    strcpy(res->phrase, "Ok");
+    strcpy(res->payload, req->payload);
+    send_response(res, client_socket);
+
+    free_request(req);
+    free_response(res);
+
     // liberare la memoria della request (free_request(req))
     return true;
 }
