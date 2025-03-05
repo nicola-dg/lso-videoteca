@@ -13,6 +13,7 @@ void database_start(bool reset)
     prepare_insert_statements();
     prepare_update_statements();
     prepare_delete_statements();
+    prepare_select_statements();
 }
 
 void database_connect()
@@ -67,6 +68,7 @@ void create_tables()
         "email TEXT, "
         "name TEXT, "
         "surname TEXT, "
+        "role TEXT, "
         "max_loans INTEGER DEFAULT 3);",
 
         "CREATE TABLE IF NOT EXISTS movies ("
@@ -136,33 +138,49 @@ void prepare_insert_statements()
 
     // Statement per inserire un utente
     res = PQprepare(conn, "insert_user",
-                    "INSERT INTO users (username, password, email, name, surname) VALUES ($1, $2, $3, $4, $5);",
-                    5, NULL);
+                    "INSERT INTO users (username, password, email, name, surname, role) VALUES ($1, crypt($2, gen_salt('bf'::text)), $3, $4, $5, $6);",
+                    6, NULL);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Errore preparazione query insert_user: %s\n", PQerrorMessage(conn));
+    }
     PQclear(res);
 
     // Statement per inserire un film
     res = PQprepare(conn, "insert_movie",
                     "INSERT INTO movies (title, genre, total_copies, available_copies, loan_count) VALUES ($1, $2, $3, $4, $5);",
                     5, NULL);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Errore preparazione query insert_movie: %s\n", PQerrorMessage(conn));
+    }
     PQclear(res);
 
     // Statement per inserire un prestito
     res = PQprepare(conn, "insert_loan",
                     "INSERT INTO loans (movie_id, user_id, due_date) VALUES ($1, $2, $3);",
                     3, NULL);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Errore preparazione query insert_loan: %s\n", PQerrorMessage(conn));
+    }
     PQclear(res);
 
     // Statement per inserire un carrello
     res = PQprepare(conn, "insert_cart",
                     "INSERT INTO carts (movie_id, user_id, checkout_date) VALUES ($1, $2, $3);",
                     3, NULL);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Errore preparazione query insert_cart: %s\n", PQerrorMessage(conn));
+    }
     PQclear(res);
 }
 
-void insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname)
+void insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role)
 {
-    const char *paramValues[5] = {username, password, email, name, surname};
-    execute_prepared_statement("insert_user", 5, paramValues);
+    const char *paramValues[6] = {username, password, email, name, surname, role};
+    execute_prepared_statement("insert_user", 6, paramValues);
 }
 
 void insert_movie(const char *title, const char *genre, int total_copies, int available_copies, int loan_count)
@@ -289,26 +307,119 @@ void delete_cart(int cart_id)
     execute_prepared_statement("delete_cart", 1, paramValues);
 }
 
-void read_data()
+void prepare_select_statements()
 {
-    PGresult *res = PQexec(conn, "SELECT id, username, password FROM users;");
+    PGresult *res;
 
-    if (PQresultStatus(res) == PGRES_TUPLES_OK)
+    // Query preparata per selezionare tutti gli utenti
+    res = PQprepare(conn, "select_all_users",
+                    "SELECT id, username, email, name, surname FROM users;",
+                    0, NULL);
+    PQclear(res);
+
+    // Query preparata per selezionare un utente per ID
+    res = PQprepare(conn, "select_user_by_id",
+                    "SELECT id, username, email, name, surname FROM users WHERE id = $1;",
+                    1, NULL);
+    PQclear(res);
+
+    // Query preparata per selezionare un utente per username e password
+    res = PQprepare(conn, "select_user_by_username_and_password",
+                    "SELECT id, username, email, name, surname FROM users WHERE username = $1 AND password = crypt($2, password);",
+                    2, NULL);
+    PQclear(res);
+}
+
+void select_all_users()
+{
+    PGresult *res = PQexecPrepared(conn, "select_all_users", 0, NULL, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
-        int rows = PQntuples(res);
-        for (int i = 0; i < rows; i++)
+        fprintf(stderr, "Errore nell'esecuzione della SELECT: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+
+    int rows = PQntuples(res); // Numero di righe restituite
+    int cols = PQnfields(res); // Numero di colonne
+
+    printf("Trovati %d utenti:\n", rows);
+    for (int i = 0; i < rows; i++)
+    {
+        for (int j = 0; j < cols; j++)
         {
-            printf("ID: %s, username: %s, password: %s\n",
-                   PQgetvalue(res, i, 0),
-                   PQgetvalue(res, i, 1),
-                   PQgetvalue(res, i, 2));
+            printf("%s: %s\t", PQfname(res, j), PQgetvalue(res, i, j));
         }
+        printf("\n");
+    }
+
+    PQclear(res);
+}
+
+void select_user_by_id(int user_id)
+{
+    char id_str[10];
+    snprintf(id_str, sizeof(id_str), "%d", user_id); // Converti l'ID in stringa
+
+    const char *paramValues[1] = {id_str};
+
+    PGresult *res = PQexecPrepared(conn, "select_user_by_id", 1, paramValues, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        fprintf(stderr, "Errore nella SELECT per ID: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return;
+    }
+
+    if (PQntuples(res) == 0)
+    {
+        printf("Nessun utente trovato con ID %d\n", user_id);
     }
     else
     {
-        fprintf(stderr, "Errore nella query: %s\n", PQerrorMessage(conn));
+        printf("Utente trovato:\n");
+        printf("ID: %s\n", PQgetvalue(res, 0, 0));
+        printf("Username: %s\n", PQgetvalue(res, 0, 1));
+        printf("Email: %s\n", PQgetvalue(res, 0, 2));
+        printf("Nome: %s\n", PQgetvalue(res, 0, 3));
+        printf("Cognome: %s\n", PQgetvalue(res, 0, 4));
     }
+
     PQclear(res);
+}
+
+bool select_user_by_username_and_password(const char *username, const char *password)
+{
+    const char *paramValues[2] = {username, password};
+
+    PGresult *res = PQexecPrepared(conn, "select_user_by_username_and_password", 2, paramValues, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        fprintf(stderr, "Errore nella SELECT per username e password: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+
+    if (PQntuples(res) == 0)
+    {
+        printf("Credenziali errate o utente non trovato.\n");
+        return false;
+    }
+    else
+    {
+        printf("Login riuscito! Dati dell'utente:\n");
+        printf("ID: %s\n", PQgetvalue(res, 0, 0));
+        printf("Username: %s\n", PQgetvalue(res, 0, 1));
+        printf("Email: %s\n", PQgetvalue(res, 0, 2));
+        printf("Nome: %s\n", PQgetvalue(res, 0, 3));
+        printf("Cognome: %s\n", PQgetvalue(res, 0, 4));
+    }
+
+    PQclear(res);
+    return true;
 }
 
 void database_close_connection()

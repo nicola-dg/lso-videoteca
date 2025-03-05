@@ -5,8 +5,8 @@
 #include "../request_response/response.h"
 #include "../jwt/jwt.h"
 #include "../database/database.h"
+#include "../request_response/request.h"
 #include <stdbool.h>
-
 
 /*---------------------- POST --------------------------*/
 bool handle_post_user_request(request_t *req, int client_socket);

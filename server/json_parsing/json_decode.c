@@ -144,12 +144,14 @@ user_t *extract_user_from_json(char *json_payload)
     if (!root)
     {
         fprintf(stderr, "Errore nel parsing JSON: %s\n", error.text);
-        return -1;
+        return NULL;
     }
 
     user_t *user = (user_t *)malloc(sizeof(user_t));
 
     const char *value;
+    if ((value = json_string_value(json_object_get(root, "id"))))
+        snprintf(user->id, sizeof(user->id), "%s", value);
 
     if ((value = json_string_value(json_object_get(root, "username"))))
         snprintf(user->username, sizeof(user->username), "%s", value);
@@ -165,6 +167,12 @@ user_t *extract_user_from_json(char *json_payload)
 
     if ((value = json_string_value(json_object_get(root, "surname"))))
         snprintf(user->surname, sizeof(user->surname), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "role"))))
+        snprintf(user->role, sizeof(user->role), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "max_loans"))))
+        snprintf(user->max_loans, sizeof(user->max_loans), "%s", value);
 
     json_decref(root); // Libera la memoria allocata da jansson
 

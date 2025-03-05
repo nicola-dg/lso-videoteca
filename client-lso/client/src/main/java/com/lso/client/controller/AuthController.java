@@ -22,6 +22,16 @@ public class AuthController {
     private RequestService requestService;
     private SocketClient socket;
 
+    private String jwt;
+
+    public String getJwt() {
+        return this.jwt;
+    }
+
+    public void setJwt(String jwt) {
+        this.jwt = jwt;
+    }
+
     public AuthController(RequestService requestService, SocketClient socket) {
         this.requestService = requestService;
         this.socket = socket;
@@ -35,11 +45,18 @@ public class AuthController {
 
     @PostMapping("/login")
     public String login(@ModelAttribute LoginForm form, Model model, HttpSession session) {
+
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername(form.getUsername());
+        userDTO.setPassword(form.getPassword());
+        userDTO.setRole("USER");
+
         Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.GET)
-                .setPath("/user").setPayload("{\\\"username\\\":\\\"" + form.getUsername() +
-                        "\\\"}"));
+                .setPath("/user").setPayload(userDTO.toJSON()));
         if (res.getStatusCode().equals("200")) {
             System.out.println("success");
+            setJwt(res.getPayload());
+            System.out.println("jwt recuperato: " + getJwt());
             return "redirect:/movies";
         } else {
             socket.close();
@@ -65,6 +82,7 @@ public class AuthController {
         userDTO.setUsername(form.getUsername());
         userDTO.setEmail(form.getEmail());
         userDTO.setPassword(form.getPassword());
+        userDTO.setRole("USER");
 
         Response res = requestService.sendRequest(
                 requestService.createRequest().setMethod(Method.POST).setPath("/user").setPayload(userDTO.toJSON()));
@@ -72,7 +90,7 @@ public class AuthController {
             System.out.println("register success");
             return "redirect:/login?registered";
         } else {
-            model.addAttribute("error", res);
+            model.addAttribute("error", res.getPayload());
             return "registration";
         }
     }

@@ -40,3 +40,10 @@ void free_request(request_t *req)
         free(req);
     }
 }
+
+bool is_valid_user(user_t *user)
+{
+    if (!user)
+        return false;
+    return (user->name && user->surname && user->username && user->email && user->password && user->role);
+}

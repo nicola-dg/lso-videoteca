@@ -37,7 +37,7 @@ void *handle_client(void *client_void_ptr)
         buffer[bytesRead] = '\0';
 
         // Visualizza i dati ricevuti
-        // printf("Received from client-%d:\n%s\n", client->socket, buffer);
+        printf("Received from client-%d:\n%s\n", client->socket, buffer);
 
         /*-------------------------------------------------*/
         /*-----------LOGICA PARSING RICHIESTA--------------*/

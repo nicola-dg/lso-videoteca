@@ -15,7 +15,8 @@ public class MovieController {
     @GetMapping("/home")
     public String getAllMovies(Model model, HttpSession session) {
         SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-        if (userSocket == null) return "redirect:/login";
+        if (userSocket == null)
+            return "redirect:/login";
 
         try {
             String response = userSocket.sendRequest("GET_ALL_MOVIES");
@@ -32,10 +33,10 @@ public class MovieController {
             @RequestParam String title,
             @RequestParam String genre,
             @RequestParam double price,
-            HttpSession session
-    ) {
+            HttpSession session) {
         SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-        if (userSocket == null) return "redirect:/login";
+        if (userSocket == null)
+            return "redirect:/login";
 
         try {
             userSocket.sendRequest("ADD_MOVIE;" + title + ";" + genre + ";" + price);
@@ -48,7 +49,8 @@ public class MovieController {
     @GetMapping("/loans")
     public String getLoans(Model model, HttpSession session) {
         SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-        if (userSocket == null) return "redirect:/login";
+        if (userSocket == null)
+            return "redirect:/login";
 
         try {
             String response = userSocket.sendRequest("GET_LOANS");
@@ -63,7 +65,8 @@ public class MovieController {
     @GetMapping("/user/{userId}/movies")
     public String getUserMovies(@PathVariable String userId, Model model, HttpSession session) {
         SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-        if (userSocket == null) return "redirect:/login";
+        if (userSocket == null)
+            return "redirect:/login";
 
         try {
             String response = userSocket.sendRequest("GET_USER_MOVIES;" + userId);
