@@ -34,10 +34,10 @@ void database_connect()
 void reset_tables()
 {
     const char *queries[] = {
-        "TRUNCATE TABLE carts RESTART IDENTITY CASCADE;",
-        "TRUNCATE TABLE loans RESTART IDENTITY CASCADE;",
-        "TRUNCATE TABLE films RESTART IDENTITY CASCADE;",
-        "TRUNCATE TABLE users RESTART IDENTITY CASCADE;"};
+        "TRUNCATE TABLE IF EXISTS carts RESTART IDENTITY CASCADE;",
+        "TRUNCATE TABLE IF EXISTS loans RESTART IDENTITY CASCADE;",
+        "TRUNCATE TABLE IF EXISTS films RESTART IDENTITY CASCADE;",
+        "TRUNCATE TABLE IF EXISTS users RESTART IDENTITY CASCADE;"};
 
     size_t num_queries = sizeof(queries) / sizeof(queries[0]);
 
@@ -75,9 +75,10 @@ void create_tables()
         "id SERIAL PRIMARY KEY, "
         "title TEXT NOT NULL, "
         "genre TEXT, "
-        "total_copies INTEGER, "
-        "available_copies INTEGER, "
-        "loan_count INTEGER DEFAULT 1);",
+        "price NUMERIC(10,2) DEFAULT 0.00, "
+        "total_copies INTEGER DEFAULT 0, "
+        "available_copies INTEGER DEFAULT 0, "
+        "loan_count INTEGER DEFAULT 0);",
 
         "CREATE TABLE IF NOT EXISTS loans ("
         "id SERIAL PRIMARY KEY, "
@@ -153,8 +154,8 @@ void prepare_insert_statements()
 
     // Statement per inserire un film
     res = PQprepare(conn, "insert_film",
-                    "INSERT INTO films (title, genre, total_copies, available_copies, loan_count) VALUES ($1, $2, $3, $4, $5);",
-                    5, NULL);
+                    "INSERT INTO films (title, genre, price) VALUES ($1, $2, $3);",
+                    3, NULL);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         fprintf(stderr, "Errore preparazione query insert_film: %s\n", PQerrorMessage(conn));
@@ -188,10 +189,10 @@ bool insert_user(const char *username, const char *password, const char *email, 
     return execute_prepared_statement("insert_user", 6, paramValues);
 }
 
-bool insert_film(const char *title, const char *genre, int total_copies, int available_copies, int loan_count)
+bool insert_film(const char *title, const char *genre, const char *price)
 {
-    const char *paramValues[5] = {title, genre, (const char *)&total_copies, (const char *)&available_copies, (const char *)&loan_count};
-    return execute_prepared_statement("insert_film", 5, paramValues);
+    const char *paramValues[3] = {title, genre, price};
+    return execute_prepared_statement("insert_film", 3, paramValues);
 }
 
 bool insert_loan(int film_id, int user_id, const char *due_date)

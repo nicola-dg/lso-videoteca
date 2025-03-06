@@ -19,3 +19,4 @@ bool extract_params(json_t *root, request_t *req);
 request_t *decode(char *json_str);
 
 user_t* extract_user_from_json(char *root);
+film_t *extract_film_from_json(char *json_payload);

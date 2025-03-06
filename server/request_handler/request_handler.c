@@ -32,19 +32,42 @@ bool handle_post_user_request(request_t *req, int client_socket)
 
 bool handle_post_film_request(request_t *req, int client_socket)
 {
-    // printf("Controllo se l'utente è un NEGOZIANTE...\n");
-    // //prende il token da req header e ne controlla la vlidita
-    // req->headers
-
-    // if(is_jwt_expired(jwt)){
-    //     //controlla che user_role ricavato dal jwt sia "NEGOZIANTE"
-    //     printf("Aggiungo nuovo film...\n");
-    //     insert_movie(req->payload);
-    // }else{
-    //     "don't have permission"
+    response_t *res = init_response();
+    // jwt_t *jwt = decode_jwt(extract_jwt_from_headers(req));
+    // if (is_jwt_expired(jwt))
+    // {
+    //     strcpy(res->status_code, "401");
+    //     strcpy(res->phrase, "Jwt Expired");
     // }
+    // else
+    // {
+    // char *role = jwt_extract_user_role(jwt);
+    // if (strcmp(role, "USER"))
+    // { // DOVRA' CONTROLLARE CHE SIA NEGOZIANTE METTO USER PER TESTARE
+    film_t *film = extract_film_from_json(req->payload);
+    if (insert_film(film->title, film->genre, film->price))
+    {
+        strcpy(res->status_code, "200");
+        strcpy(res->phrase, "ok");
+        strcpy(res->payload, req->payload);
+    }
+    else
+    {
+        strcpy(res->status_code, "500");
+        strcpy(res->phrase, "Server Error");
+    }
+    //}
+    // else
+    //{
+    //    strcpy(res->status_code, "400");
+    //    strcpy(res->phrase, "Permission Denied");
+    //}
+    //}
 
-    // // liberare la memoria della request (free_request(req))
+    send_response(res, client_socket);
+    free_request(req);
+    free_response(res);
+    // jwt_free(jwt);
     return true;
 }
 
@@ -106,13 +129,12 @@ bool handle_get_film_request(request_t *req, int client_socket)
 
     response_t *res = init_response();
 
-    char *jwt = extract_jwt_from_headers(req);
-    printf("%s\n", jwt);
+    jwt_t *jwt = decode_jwt(extract_jwt_from_headers(req));
 
     const char *user_id = jwt_extract_user_id(jwt);
     const char *user_role = jwt_extract_user_role(jwt);
 
-    printf("user_id: %s, user_role:% s\n", user_id, user_role);
+    printf("user_id: %s, user_role:%s\n", user_id, user_role);
 
     char *films = select_all_films();
 
@@ -121,6 +143,7 @@ bool handle_get_film_request(request_t *req, int client_socket)
         // Errore del server nel recupero dei film
         strcpy(res->status_code, "500");
         strcpy(res->phrase, "Server Error");
+        strcpy(res->payload, " ");
     }
     else if (strlen(films) == 0)
     {

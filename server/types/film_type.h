@@ -9,6 +9,7 @@ struct film
     char genre[100];
     char total_copies[100];
     char available_copies[100];
+    char price[100];
     char loan_count[100];
 };
 

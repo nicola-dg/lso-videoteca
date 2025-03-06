@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Videoteca</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" th:href="@{/css/mainPage.css}">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+
+  <h2>Aggiungi un Film</h2>
+
+  <form th:action="@{/add-movie}" method="post">
+    <label for="title">Titolo:</label>
+    <input type="text" id="title" name="title" required>
+
+    <label for="genre">Genere:</label>
+    <input type="text" id="genre" name="genre" required>
+
+    <label for="price">Prezzo (€):</label>
+    <input type="number" id="price" name="price" step="0.01" required>
+
+    <button type="submit">Aggiungi</button>
+  </form>
+
+</body>
+</html>

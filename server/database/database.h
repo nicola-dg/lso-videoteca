@@ -23,7 +23,7 @@ void prepare_select_statements();
 
 // Funzioni per l'inserimento dei dati
 bool insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role);
-bool insert_film(const char *title, const char *genre, int total_copies, int available_copies, int loan_count);
+bool insert_film(const char *title, const char *genre, const char *price);
 bool insert_loan(int movie_id, int user_id, const char *due_date);
 bool insert_cart(int movie_id, int user_id, const char *checkout_date);
 

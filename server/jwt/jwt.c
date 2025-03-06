@@ -63,7 +63,7 @@ bool is_jwt_expired(jwt_t *jwt)
 }
 
 // Funzione per decodificare un JWT
-bool decode_jwt(const char *token)
+jwt_t *decode_jwt(const char *token)
 {
     jwt_t *jwt;
     int ret;
@@ -74,92 +74,69 @@ bool decode_jwt(const char *token)
     {
         // Se c'è un errore nella decodifica, restituiamo il messaggio di errore
         printf("Errore durante la decodifica del JWT: %s\n", strerror(ret));
-        return false;
-    }
-
-    const char *user_id = jwt_get_grant(jwt, "user_id");
-    const char *user_role = jwt_get_grant(jwt, "user_role");
-
-    printf("User ID: %s\n", user_id ? user_id : "Non presente");
-    printf("User Role: %s\n", user_role ? user_role : "Non presente");
-
-    // Libera la memoria del JWT
-    jwt_free(jwt);
-
-    return true; // JWT valido e non scaduto
-}
-
-char *jwt_extract_user_id(const char *token)
-{
-    jwt_t *jwt;
-    int ret;
-
-    // Decodifica il JWT
-    ret = jwt_decode(&jwt, token, (unsigned char *)VERY_SECRET_KEY, strlen(VERY_SECRET_KEY));
-    if (ret != 0)
-    {
-        printf("Errore durante la decodifica del JWT: %s\n", strerror(ret));
         return NULL;
     }
 
-    // Estrai il valore user_id dal JWT
+    // const char *user_id = jwt_get_grant(jwt, "user_id");
+    // const char *user_role = jwt_get_grant(jwt, "user_role");
+
+    // printf("User ID: %s\n", user_id ? user_id : "Non presente");
+    // printf("User Role: %s\n", user_role ? user_role : "Non presente");
+
+    // Libera la memoria del JWT
+    // jwt_free(jwt);
+
+    return jwt; // JWT valido e non scaduto
+}
+
+char *jwt_extract_user_id(jwt_t *jwt)
+{
+    // Estrai il valore "user_id" dal JWT
     const char *user_id = jwt_get_grant(jwt, "user_id");
     if (user_id == NULL)
     {
         printf("user_id non presente nel JWT.\n");
-        jwt_free(jwt);
         return NULL;
     }
 
-    // Crea una copia dinamica del valore estratto
-    char *user_id_copy = (char *)malloc(strlen(user_id) + 1);
-    strncpy(user_id_copy, user_id, strlen(user_id) + 1);
-
+    // Alloca memoria per la copia del valore estratto
+    size_t len = strlen(user_id);
+    char *user_id_copy = (char *)malloc(len + 1); // +1 per il terminatore null
     if (user_id_copy == NULL)
     {
         printf("Errore durante la copia di user_id.\n");
-        jwt_free(jwt);
         return NULL;
     }
 
-    jwt_free(jwt); // Libera la memoria del JWT originale
+    // Copia la stringa in modo sicuro
+    strncpy(user_id_copy, user_id, len);
+    user_id_copy[len] = '\0'; // Garantisce la terminazione della stringa
 
-    return user_id_copy; // Restituisce una copia del user_id
+    return user_id_copy; // Restituisce una copia del user_role
 }
 
-char *jwt_extract_user_role(const char *token)
+char *jwt_extract_user_role(jwt_t *jwt)
 {
-    jwt_t *jwt;
-    int ret;
-
-    // Decodifica il JWT
-    ret = jwt_decode(&jwt, token, (unsigned char *)VERY_SECRET_KEY, strlen(VERY_SECRET_KEY));
-    if (ret != 0)
-    {
-        printf("Errore durante la decodifica del JWT: %s\n", strerror(ret));
-        return NULL;
-    }
-
-    // Estrai il valore user_role dal JWT
+    // Estrai il valore "user_role" dal JWT
     const char *user_role = jwt_get_grant(jwt, "user_role");
     if (user_role == NULL)
     {
         printf("user_role non presente nel JWT.\n");
-        jwt_free(jwt);
         return NULL;
     }
 
-    // Crea una copia dinamica del valore estratto
-    char *user_role_copy = (char *)malloc(strlen(user_role) + 1);
-    strncpy(user_role_copy, user_role, strlen(user_role) + 1);
+    // Alloca memoria per la copia del valore estratto
+    size_t len = strlen(user_role);
+    char *user_role_copy = (char *)malloc(len + 1); // +1 per il terminatore null
     if (user_role_copy == NULL)
     {
         printf("Errore durante la copia di user_role.\n");
-        jwt_free(jwt);
         return NULL;
     }
 
-    jwt_free(jwt); // Libera la memoria del JWT originale
+    // Copia la stringa in modo sicuro
+    strncpy(user_role_copy, user_role, len);
+    user_role_copy[len] = '\0'; // Garantisce la terminazione della stringa
 
     return user_role_copy; // Restituisce una copia del user_role
 }

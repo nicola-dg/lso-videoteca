@@ -198,3 +198,51 @@ user_t *extract_user_from_json(char *json_payload)
 
     return user;
 }
+
+
+/*--------------------------------------------------*/
+/*-------------------FILM DECODING------------------*/
+/*--------------------------------------------------*/
+film_t *extract_film_from_json(char *json_payload)
+{
+    if (!json_payload)
+        return NULL; // Controllo parametri nulli
+
+    json_t *root;
+    json_error_t error;
+
+    root = json_loads(json_payload, 0, &error);
+    if (!root)
+    {
+        fprintf(stderr, "Errore nel parsing JSON: %s\n", error.text);
+        return NULL;
+    }
+
+    film_t *film = (film_t *)malloc(sizeof(film_t));
+
+    const char *value;
+    if ((value = json_string_value(json_object_get(root, "id"))))
+        snprintf(film->id, sizeof(film->id), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "title"))))
+        snprintf(film->title, sizeof(film->title), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "genre"))))
+        snprintf(film->genre, sizeof(film->genre), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "total_copies"))))
+        snprintf(film->total_copies, sizeof(film->total_copies), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "available_copies"))))
+        snprintf(film->available_copies, sizeof(film->available_copies), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "price"))))
+        snprintf(film->price, sizeof(film->price), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "loan_count"))))
+        snprintf(film->loan_count, sizeof(film->loan_count), "%s", value);
+
+    json_decref(root); // Libera la memoria allocata da Jansson
+
+    return film;
+}

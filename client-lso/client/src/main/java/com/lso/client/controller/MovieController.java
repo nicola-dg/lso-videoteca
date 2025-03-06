@@ -34,16 +34,22 @@ public class MovieController {
     public String getAllMovies(Model model, HttpSession session) {
         String jwt = (String) session.getAttribute("jwt");
         Response res = requestService
-                .sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/film").setHeader(new Header("Authorization", "Bearer " + jwt)));
+                .sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/film")
+                        .setHeader(new Header("Authorization", "Bearer " + jwt)));
         try {
             List<FilmDTO> films = responseService.parseFilms(res.getPayload());
             films.forEach(System.out::println);
-         } catch (IOException e) {
+        } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
-         }
+        }
 
         return "main";
+    }
+
+    @GetMapping("/add-movie")
+    public String showAddMovieForm() {
+        return "add-movie";
     }
 
     @PostMapping("/add-movie")
@@ -53,13 +59,20 @@ public class MovieController {
             @RequestParam double price,
             HttpSession session) {
 
-            FilmDTO film = new FilmDTO();
-            film.setTitle(title);
-            film.setGenre(genre);
-            film.setPrice(price);
-            Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.POST).setPath("/film").setPayload(film.toJSON()));
-            return "redirect:/admin-dashboard";
-       
+        System.out.println("route add-movie attivata");
+        String jwt = (String) session.getAttribute("jwt");
+        FilmDTO film = new FilmDTO();
+        film.setTitle(title);
+        film.setGenre(genre);
+        film.setPrice(price);
+        System.out.println(film);
+        Response res = requestService.sendRequest(requestService.createRequest()
+                .setMethod(Method.POST)
+                .setPath("/film")
+                .setPayload(film.toJSON())
+                .setHeader(new Header("Authorization", "Bearer " + jwt)));
+        return "redirect:/admin-dashboard";
+
     }
 
     @GetMapping("/loans")
