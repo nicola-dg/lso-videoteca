@@ -1,5 +1,6 @@
 package com.lso.client.service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lso.client.service.ResponseService.Response;
+import com.lso.client.types.Header;
 import com.lso.client.types.Method;
 
 import jakarta.websocket.server.ServerEndpoint;
@@ -18,9 +20,11 @@ public class RequestService {
     ResponseService responseService;
 
     public class Request {
+
         Method method;
         String path;
         String payload;
+        List<Header> headers = new ArrayList<>();
 
         public Method getMethod() {
             return this.method;
@@ -49,23 +53,28 @@ public class RequestService {
             return this;
         }
 
+        public Request setHeader(Header header) {
+            this.headers.add(header);
+            return this;
+        }
+
         @Override
         public String toString() {
             return "{\"method\":\"" + method.toString() + "\",\"path\":\"" + path + "\",\"payload\":\"" + payload
-                    + "\"}";
+                    + "\"," + "\"headers\":" + headers.toString() + "}";
         }
     }
 
-    public RequestService(SocketClient socketClient, ResponseService responseService){
-        this.socketClient=socketClient;
-        this.responseService=responseService;
+    public RequestService(SocketClient socketClient, ResponseService responseService) {
+        this.socketClient = socketClient;
+        this.responseService = responseService;
     }
 
     public Request createRequest() {
         return new Request();
     }
 
-    public Response sendRequest(Request req){
+    public Response sendRequest(Request req) {
         try {
             return responseService.parseResponse(socketClient.sendRequest(req.toString()));
         } catch (Exception e) {

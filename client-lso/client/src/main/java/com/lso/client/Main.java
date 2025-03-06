@@ -7,6 +7,7 @@ import com.lso.client.DTO.UserDTO;
 import com.lso.client.service.RequestService;
 import com.lso.client.service.ResponseService;
 import com.lso.client.service.RequestService.Request;
+import com.lso.client.types.Header;
 import com.lso.client.service.ResponseService.Response;
 import com.lso.client.service.SocketClient;
 import com.lso.client.types.Method;
@@ -20,40 +21,19 @@ public class Main {
             SocketClient userSocket = new SocketClient();
             RequestService requestService = new RequestService(userSocket, responseService);
 
-            // Response response = requestService
-            // .sendRequest(
-            // requestService.createRequest()
-            // .setMethod(Method.GET)
-            // .setPath("/user")
-            // .setPayload("{\\\"random\\\":\\\"paylaod\\\"}"));
+            Response response = requestService
+            .sendRequest(
+            requestService.createRequest()
+            .setMethod(Method.GET)
+            .setPath("/user")
+            .setPayload("{\\\"random\\\":\\\"paylaod\\\"}")
+            .setHeader(new Header("Authorization", "jwt"))
+            );
 
-            // System.out.println("response status-code: " + response.getStatusCode());
-            // System.out.println("response status-phrase: " + response.getPhrase());
-            // System.out.println("response payload: " + response.getPayload());
-
-            // System.out.println(responseService.parseResponse(userSocket.sendRequest(requestService.createRequest()
-            //                                                                                         .setMethod(Method.GET)
-            //                                                                                         .setPath("/user")
-            //                                                                                         .setPayload("{\\\"random\\\":\\\"paylaod\\\"}")
-            //                                                                                         .toString())));
-
-
-            // System.out.println(requestService.sendRequest(requestService.createRequest()
-            //                                             .setMethod(Method.GET)
-            //                                             .setPath("/user")
-            //                                             .setPayload("{\\\"random\\\":\\\"paylaod\\\"}")));
-
-
-            UserDTO userDTO = new UserDTO();
-            userDTO.setName("Nicola");
-            userDTO.setUsername("nico");
-            userDTO.setSurname("dangelo");
-            userDTO.setPassword("password");
-
-            System.out.println(userDTO.toJSON());
+            
 
         } catch (Exception e) {
-            System.out.println("error");
+            System.out.println("error nel main");
         }
     }
 }

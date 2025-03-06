@@ -10,9 +10,8 @@ bool handle_post_user_request(request_t *req, int client_socket)
 
     user_t *user = extract_user_from_json(req->payload);
 
-    if (is_valid_user(user))
+    if (is_valid_user(user) && insert_user(user->username, user->password, user->email, user->name, user->surname, user->role))
     {
-        insert_user(user->username, user->password, user->email, user->name, user->surname, user->role);
         strcpy(res->status_code, "200");
         strcpy(res->phrase, "Ok");
         strcpy(res->payload, req->payload);
@@ -33,13 +32,19 @@ bool handle_post_user_request(request_t *req, int client_socket)
 
 bool handle_post_film_request(request_t *req, int client_socket)
 {
-    printf("Controllo se l'utente è un NEGOZIANTE...\n");
-    printf("Controllo se il film è formattato correttamente...\n");
-    printf("Aggiungo nuovo film...\n");
-    // Aggiungi qui il codice per gestire la richiesta POST
-    print_request(req);
+    // printf("Controllo se l'utente è un NEGOZIANTE...\n");
+    // //prende il token da req header e ne controlla la vlidita
+    // req->headers
 
-    // liberare la memoria della request (free_request(req))
+    // if(is_jwt_expired(jwt)){
+    //     //controlla che user_role ricavato dal jwt sia "NEGOZIANTE"
+    //     printf("Aggiungo nuovo film...\n");
+    //     insert_movie(req->payload);
+    // }else{
+    //     "don't have permission"
+    // }
+
+    // // liberare la memoria della request (free_request(req))
     return true;
 }
 
@@ -65,6 +70,7 @@ bool handle_get_user_request(request_t *req, int client_socket)
 {
     response_t *res = init_response();
     user_t *user = extract_user_from_json(req->payload);
+    select_user_id_by_username(user->username, user->id);
 
     if (user->username && user->password && user->id && user->role)
     {
@@ -96,25 +102,46 @@ bool handle_get_user_request(request_t *req, int client_socket)
 bool handle_get_film_request(request_t *req, int client_socket)
 {
     printf("GET /film request ricevuta...\n");
-    // Aggiungi qui il codice per gestire la richiesta GET
     print_request(req);
 
     response_t *res = init_response();
-    char* films = select_all_films();
-    if(films){
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "Ok");
-        strcpy(res->payload, films);  
-    }else
+
+    char *jwt = extract_jwt_from_headers(req);
+    printf("%s\n", jwt);
+
+    const char *user_id = jwt_extract_user_id(jwt);
+    const char *user_role = jwt_extract_user_role(jwt);
+
+    printf("user_id: %s, user_role:% s\n", user_id, user_role);
+
+    char *films = select_all_films();
+
+    if (films == NULL)
     {
+        // Errore del server nel recupero dei film
         strcpy(res->status_code, "500");
         strcpy(res->phrase, "Server Error");
     }
-
+    else if (strlen(films) == 0)
+    {
+        // Nessun film trovato
+        strcpy(res->status_code, "404");
+        strcpy(res->phrase, "Not Found");
+        strcpy(res->payload, "Nessun film disponibile.");
+    }
+    else
+    {
+        // Film trovati con successo
+        strcpy(res->status_code, "200");
+        strcpy(res->phrase, "Ok");
+        strcpy(res->payload, films);
+    }
 
     send_response(res, client_socket);
+
     free_request(req);
     free_response(res);
+    free(films); // Libera la memoria allocata per la stringa dei film
 
     return true;
 }

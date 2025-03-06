@@ -28,7 +28,7 @@ jwt_t *init_jwt(jwt_payload_t *payload)
     jwt_add_grant(jwt, "user_id", payload->user_id);
     jwt_add_grant(jwt, "user_role", payload->user_role);
     jwt_add_grant(jwt, "exp", expiry_str);
-    jwt_set_alg(jwt, JWT_ALG_HS256, (unsigned char *)VERY_SERCRET_KEY, strlen(VERY_SERCRET_KEY));
+    jwt_set_alg(jwt, JWT_ALG_HS256, (unsigned char *)VERY_SECRET_KEY, strlen(VERY_SECRET_KEY));
 
     // Generazione del token
     token = jwt_encode_str(jwt);
@@ -69,7 +69,7 @@ bool decode_jwt(const char *token)
     int ret;
 
     // Decodifica il JWT
-    ret = jwt_decode(&jwt, token, (unsigned char *)VERY_SERCRET_KEY, strlen(VERY_SERCRET_KEY));
+    ret = jwt_decode(&jwt, token, (unsigned char *)VERY_SECRET_KEY, strlen(VERY_SECRET_KEY));
     if (ret != 0)
     {
         // Se c'è un errore nella decodifica, restituiamo il messaggio di errore
@@ -87,4 +87,79 @@ bool decode_jwt(const char *token)
     jwt_free(jwt);
 
     return true; // JWT valido e non scaduto
+}
+
+char *jwt_extract_user_id(const char *token)
+{
+    jwt_t *jwt;
+    int ret;
+
+    // Decodifica il JWT
+    ret = jwt_decode(&jwt, token, (unsigned char *)VERY_SECRET_KEY, strlen(VERY_SECRET_KEY));
+    if (ret != 0)
+    {
+        printf("Errore durante la decodifica del JWT: %s\n", strerror(ret));
+        return NULL;
+    }
+
+    // Estrai il valore user_id dal JWT
+    const char *user_id = jwt_get_grant(jwt, "user_id");
+    if (user_id == NULL)
+    {
+        printf("user_id non presente nel JWT.\n");
+        jwt_free(jwt);
+        return NULL;
+    }
+
+    // Crea una copia dinamica del valore estratto
+    char *user_id_copy = (char *)malloc(strlen(user_id) + 1);
+    strncpy(user_id_copy, user_id, strlen(user_id) + 1);
+
+    if (user_id_copy == NULL)
+    {
+        printf("Errore durante la copia di user_id.\n");
+        jwt_free(jwt);
+        return NULL;
+    }
+
+    jwt_free(jwt); // Libera la memoria del JWT originale
+
+    return user_id_copy; // Restituisce una copia del user_id
+}
+
+char *jwt_extract_user_role(const char *token)
+{
+    jwt_t *jwt;
+    int ret;
+
+    // Decodifica il JWT
+    ret = jwt_decode(&jwt, token, (unsigned char *)VERY_SECRET_KEY, strlen(VERY_SECRET_KEY));
+    if (ret != 0)
+    {
+        printf("Errore durante la decodifica del JWT: %s\n", strerror(ret));
+        return NULL;
+    }
+
+    // Estrai il valore user_role dal JWT
+    const char *user_role = jwt_get_grant(jwt, "user_role");
+    if (user_role == NULL)
+    {
+        printf("user_role non presente nel JWT.\n");
+        jwt_free(jwt);
+        return NULL;
+    }
+
+    // Crea una copia dinamica del valore estratto
+    char *user_role_copy = (char *)malloc(strlen(user_role) + 1);
+    strncpy(user_role_copy, user_role, strlen(user_role) + 1);
+    if (user_role_copy == NULL)
+    {
+        printf("Errore durante la copia di user_role.\n");
+        jwt_free(jwt);
+        return NULL;
+    }
+
+    jwt_free(jwt); // Libera la memoria del JWT originale
+
+    return user_role_copy; // Restituisce una copia del user_role
 }

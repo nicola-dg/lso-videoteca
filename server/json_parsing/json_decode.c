@@ -42,27 +42,40 @@ bool extract_payload(json_t *root, request_t *req)
 bool extract_headers(json_t *root, request_t *req)
 {
     json_t *headers_json = json_object_get(root, "headers");
-    if (json_is_object(headers_json))
+    if (json_is_array(headers_json)) // Verifica che 'headers' sia un array
     {
-        const char *key;
-        json_t *value;
-        json_object_foreach(headers_json, key, value)
+        size_t index;
+        json_t *header_json;
+
+        // Itera sull'array di header
+        json_array_foreach(headers_json, index, header_json)
         {
-            if (strlen(key) < MAX_KEY_LEN && json_is_string(value))
+            if (json_is_object(header_json)) // Verifica che ogni elemento dell'array sia un oggetto
             {
-                struct header new_header;
-                strncpy(new_header.key, key, MAX_KEY_LEN);
-                strncpy(new_header.value, json_string_value(value), MAX_VALUE_LEN);
+                const char *key;
+                json_t *value;
 
-                // Print the header for debugging
-                printf("Header: %s -> %s\n", new_header.key, new_header.value);
-
-                for (int i = 0; i < MAX_HEADERS; i++)
+                // Itera sull'oggetto dell'header (assumendo che sia una coppia chiave-valore)
+                json_object_foreach(header_json, key, value)
                 {
-                    if (req->headers->headerCollection[i].key[0] == '\0')
+                    if (strlen(key) < MAX_KEY_LEN && json_is_string(value))
                     {
-                        req->headers->headerCollection[i] = new_header;
-                        break;
+                        struct header new_header;
+                        strncpy(new_header.key, key, MAX_KEY_LEN);
+                        strncpy(new_header.value, json_string_value(value), MAX_VALUE_LEN);
+
+                        // Print the header for debugging
+                        printf("Header: %s -> %s\n", new_header.key, new_header.value);
+
+                        // Aggiungi l'header all'array di header di 'req'
+                        for (int i = 0; i < MAX_HEADERS; i++)
+                        {
+                            if (req->headers->headerCollection[i].key[0] == '\0') // Se trovi uno spazio vuoto
+                            {
+                                req->headers->headerCollection[i] = new_header;
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -185,5 +198,3 @@ user_t *extract_user_from_json(char *json_payload)
 
     return user;
 }
-
-

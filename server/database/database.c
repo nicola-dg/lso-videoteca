@@ -36,7 +36,7 @@ void reset_tables()
     const char *queries[] = {
         "TRUNCATE TABLE carts RESTART IDENTITY CASCADE;",
         "TRUNCATE TABLE loans RESTART IDENTITY CASCADE;",
-        "TRUNCATE TABLE movies RESTART IDENTITY CASCADE;",
+        "TRUNCATE TABLE films RESTART IDENTITY CASCADE;",
         "TRUNCATE TABLE users RESTART IDENTITY CASCADE;"};
 
     size_t num_queries = sizeof(queries) / sizeof(queries[0]);
@@ -81,7 +81,7 @@ void create_tables()
 
         "CREATE TABLE IF NOT EXISTS loans ("
         "id SERIAL PRIMARY KEY, "
-        "film_id INTEGER REFERENCES movies(id) ON DELETE CASCADE, "
+        "film_id INTEGER REFERENCES films(id) ON DELETE CASCADE, "
         "user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, "
         "checkout_date TIMESTAMP DEFAULT NOW(),"
         "due_date TIMESTAMP, "
@@ -89,7 +89,7 @@ void create_tables()
 
         "CREATE TABLE IF NOT EXISTS carts ("
         "id SERIAL PRIMARY KEY, "
-        "mfilm_id INTEGER REFERENCES movies(id) ON DELETE CASCADE, "
+        "film_id INTEGER REFERENCES films(id) ON DELETE CASCADE, "
         "user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, "
         "checkout_date TIMESTAMP DEFAULT NOW());"};
 
@@ -112,8 +112,10 @@ void create_tables()
     }
 }
 
-void execute_prepared_statement(const char *stmt_name, int nParams, const char **paramValues)
+bool execute_prepared_statement(const char *stmt_name, int nParams, const char **paramValues)
 {
+
+    bool ret;
     // Esegui la query preparata con i parametri passati
     PGresult *res = PQexecPrepared(conn, stmt_name, nParams, paramValues, NULL, NULL, 0);
 
@@ -121,15 +123,18 @@ void execute_prepared_statement(const char *stmt_name, int nParams, const char *
     {
         // Se la query non va a buon fine, stampa l'errore
         fprintf(stderr, "Errore nell'esecuzione della query '%s': %s\n", stmt_name, PQerrorMessage(conn));
+        ret = false;
     }
     else
     {
         // Se la query è stata eseguita correttamente
         printf("Esecuzione riuscita della query '%s'.\n", stmt_name);
+        ret = true;
     }
 
     // Pulisci il risultato della query
     PQclear(res);
+    return ret;
 }
 
 void prepare_insert_statements()
@@ -147,18 +152,18 @@ void prepare_insert_statements()
     PQclear(res);
 
     // Statement per inserire un film
-    res = PQprepare(conn, "insert_movie",
-                    "INSERT INTO movies (title, genre, total_copies, available_copies, loan_count) VALUES ($1, $2, $3, $4, $5);",
+    res = PQprepare(conn, "insert_film",
+                    "INSERT INTO films (title, genre, total_copies, available_copies, loan_count) VALUES ($1, $2, $3, $4, $5);",
                     5, NULL);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
-        fprintf(stderr, "Errore preparazione query insert_movie: %s\n", PQerrorMessage(conn));
+        fprintf(stderr, "Errore preparazione query insert_film: %s\n", PQerrorMessage(conn));
     }
     PQclear(res);
 
     // Statement per inserire un prestito
     res = PQprepare(conn, "insert_loan",
-                    "INSERT INTO loans (movie_id, user_id, due_date) VALUES ($1, $2, $3);",
+                    "INSERT INTO loans (film_id, user_id, due_date) VALUES ($1, $2, $3);",
                     3, NULL);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
@@ -168,7 +173,7 @@ void prepare_insert_statements()
 
     // Statement per inserire un carrello
     res = PQprepare(conn, "insert_cart",
-                    "INSERT INTO carts (movie_id, user_id, checkout_date) VALUES ($1, $2, $3);",
+                    "INSERT INTO carts (film_id, user_id, checkout_date) VALUES ($1, $2, $3);",
                     3, NULL);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
@@ -177,28 +182,28 @@ void prepare_insert_statements()
     PQclear(res);
 }
 
-void insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role)
+bool insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role)
 {
     const char *paramValues[6] = {username, password, email, name, surname, role};
-    execute_prepared_statement("insert_user", 6, paramValues);
+    return execute_prepared_statement("insert_user", 6, paramValues);
 }
 
-void insert_movie(const char *title, const char *genre, int total_copies, int available_copies, int loan_count)
+bool insert_film(const char *title, const char *genre, int total_copies, int available_copies, int loan_count)
 {
     const char *paramValues[5] = {title, genre, (const char *)&total_copies, (const char *)&available_copies, (const char *)&loan_count};
-    execute_prepared_statement("insert_movie", 5, paramValues);
+    return execute_prepared_statement("insert_film", 5, paramValues);
 }
 
-void insert_loan(int movie_id, int user_id, const char *due_date)
+bool insert_loan(int film_id, int user_id, const char *due_date)
 {
-    const char *paramValues[3] = {(const char *)&movie_id, (const char *)&user_id, due_date};
-    execute_prepared_statement("insert_loan", 3, paramValues);
+    const char *paramValues[3] = {(const char *)&film_id, (const char *)&user_id, due_date};
+    return execute_prepared_statement("insert_loan", 3, paramValues);
 }
 
-void insert_cart(int movie_id, int user_id, const char *checkout_date)
+bool insert_cart(int film_id, int user_id, const char *checkout_date)
 {
-    const char *paramValues[3] = {(const char *)&movie_id, (const char *)&user_id, checkout_date};
-    execute_prepared_statement("insert_cart", 3, paramValues);
+    const char *paramValues[3] = {(const char *)&film_id, (const char *)&user_id, checkout_date};
+    return execute_prepared_statement("insert_cart", 3, paramValues);
 }
 
 void prepare_update_statements()
@@ -212,8 +217,8 @@ void prepare_update_statements()
     PQclear(res);
 
     // Statement per aggiornare la disponibilità di copie di un film
-    res = PQprepare(conn, "update_movie",
-                    "UPDATE movies SET available_copies = $1 WHERE id = $2;",
+    res = PQprepare(conn, "update_film",
+                    "UPDATE films SET available_copies = $1 WHERE id = $2;",
                     2, NULL);
     PQclear(res);
 
@@ -230,28 +235,28 @@ void prepare_update_statements()
     PQclear(res);
 }
 
-void update_user(const char *password, const char *email, const char *name, const char *surname, int max_loans, const char *username)
+bool update_user(const char *password, const char *email, const char *name, const char *surname, int max_loans, const char *username)
 {
     const char *paramValues[6] = {password, email, name, surname, (const char *)&max_loans, username};
-    execute_prepared_statement("update_user", 6, paramValues);
+    return execute_prepared_statement("update_user", 6, paramValues);
 }
 
-void update_movie(int available_copies, int movie_id)
+bool update_film(int available_copies, int film_id)
 {
-    const char *paramValues[2] = {(const char *)&available_copies, (const char *)&movie_id};
-    execute_prepared_statement("update_movie", 2, paramValues);
+    const char *paramValues[2] = {(const char *)&available_copies, (const char *)&film_id};
+    return execute_prepared_statement("update_film", 2, paramValues);
 }
 
-void update_loan(const char *return_date, int loan_id)
+bool update_loan(const char *return_date, int loan_id)
 {
     const char *paramValues[2] = {return_date, (const char *)&loan_id};
-    execute_prepared_statement("update_loan", 2, paramValues);
+    return execute_prepared_statement("update_loan", 2, paramValues);
 }
 
-void update_cart(const char *checkout_date, int cart_id)
+bool update_cart(const char *checkout_date, int cart_id)
 {
     const char *paramValues[2] = {checkout_date, (const char *)&cart_id};
-    execute_prepared_statement("update_cart", 2, paramValues);
+    return execute_prepared_statement("update_cart", 2, paramValues);
 }
 
 void prepare_delete_statements()
@@ -265,8 +270,8 @@ void prepare_delete_statements()
     PQclear(res);
 
     // Statement per eliminare un film
-    res = PQprepare(conn, "delete_movie",
-                    "DELETE FROM movies WHERE id = $1;",
+    res = PQprepare(conn, "delete_film",
+                    "DELETE FROM films WHERE id = $1;",
                     1, NULL);
     PQclear(res);
 
@@ -283,28 +288,28 @@ void prepare_delete_statements()
     PQclear(res);
 }
 
-void delete_user(int user_id)
+bool delete_user(int user_id)
 {
     const char *paramValues[1] = {(const char *)&user_id};
-    execute_prepared_statement("delete_user", 1, paramValues);
+    return execute_prepared_statement("delete_user", 1, paramValues);
 }
 
-void delete_movie(int movie_id)
+bool delete_film(int film_id)
 {
-    const char *paramValues[1] = {(const char *)&movie_id};
-    execute_prepared_statement("delete_movie", 1, paramValues);
+    const char *paramValues[1] = {(const char *)&film_id};
+    return execute_prepared_statement("delete_film", 1, paramValues);
 }
 
-void delete_loan(int loan_id)
+bool delete_loan(int loan_id)
 {
     const char *paramValues[1] = {(const char *)&loan_id};
-    execute_prepared_statement("delete_loan", 1, paramValues);
+    return execute_prepared_statement("delete_loan", 1, paramValues);
 }
 
-void delete_cart(int cart_id)
+bool delete_cart(int cart_id)
 {
     const char *paramValues[1] = {(const char *)&cart_id};
-    execute_prepared_statement("delete_cart", 1, paramValues);
+    return execute_prepared_statement("delete_cart", 1, paramValues);
 }
 
 void prepare_select_statements()
@@ -331,7 +336,13 @@ void prepare_select_statements()
 
     // Query preparata per selezionare tutti i film
     res = PQprepare(conn, "select_all_films",
-                    "SELECT id, title, genre, total_copies, available_copies, loan_count FROM movies;",
+                    "SELECT id, title, genre, total_copies, available_copies, loan_count FROM films;",
+                    0, NULL);
+    PQclear(res);
+
+    // Query preparata per ottenere user_id a partire dallo username
+    res = PQprepare(conn, "select_user_id_by_username",
+                    "SELECT id FROM users WHERE username = $1 ;",
                     0, NULL);
     PQclear(res);
 }
@@ -422,6 +433,39 @@ bool select_user_by_username_and_password(const char *username, const char *pass
         printf("Email: %s\n", PQgetvalue(res, 0, 2));
         printf("Nome: %s\n", PQgetvalue(res, 0, 3));
         printf("Cognome: %s\n", PQgetvalue(res, 0, 4));
+    }
+
+    PQclear(res);
+    return true;
+}
+
+bool select_user_id_by_username(char *username, char *user_id)
+{
+    const char *paramValues[1] = {username}; // Passiamo solo il parametro username
+
+    // Esegui la query preparata per ottenere l'ID utente in base allo username
+    PGresult *res = PQexecPrepared(conn, "select_user_id_by_username", 1, paramValues, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        // Se c'è un errore, stampiamo un messaggio di errore e liberiamo la memoria
+        fprintf(stderr, "Errore nella SELECT per username: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+
+    if (PQntuples(res) == 0)
+    {
+        // Se non ci sono righe nel risultato, l'utente non è stato trovato
+        printf("Utente non trovato.\n");
+        PQclear(res);
+        return false;
+    }
+    else
+    {
+        // Se l'utente è trovato, copiamo l'ID nella variabile user_id
+        strcpy(user_id, PQgetvalue(res, 0, 0)); // Assume che l'ID sia nel primo campo
+        printf("ID utente: %s\n", user_id);
     }
 
     PQclear(res);

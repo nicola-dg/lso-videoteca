@@ -1,9 +1,14 @@
 package com.lso.client.service;
 
+import java.io.IOException;
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lso.client.DTO.FilmDTO;
 
 @Service
 public class ResponseService {
@@ -60,6 +65,11 @@ public class ResponseService {
         } catch (Exception e) {
             throw new RuntimeException("Errore nel parsing della risposta JSON", e);
         }
+    }
+
+    public List<FilmDTO> parseFilms(String jsonPayload) throws IOException {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(jsonPayload, new TypeReference<List<FilmDTO>>() {});
     }
 
 

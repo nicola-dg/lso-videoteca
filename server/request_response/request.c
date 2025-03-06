@@ -47,3 +47,25 @@ bool is_valid_user(user_t *user)
         return false;
     return (user->name && user->surname && user->username && user->email && user->password && user->role);
 }
+
+
+// Funzione per estrarre il JWT dal campo Authorization degli header
+char *extract_jwt_from_headers(request_t *req)
+{
+    // Scorri tutti gli header fino a trovare NULL
+    for (int i = 0; req->headers->headerCollection[i].key != NULL; i++) {
+        // Verifica se l'header è 'Authorization'
+        if (strcmp(req->headers->headerCollection[i].key, "Authorization") == 0) {
+            // Se trovi l'header Authorization, estrai il valore (che è il JWT)
+            char *auth_header = req->headers->headerCollection[i].value;
+
+            // Controlla se l'header contiene 'Bearer' e rimuovilo, lasciando solo il token
+            if (strncmp(auth_header, "Bearer ", 7) == 0) {
+                // Restituisci solo la parte del token dopo "Bearer "
+                return auth_header + 7;
+            }
+        }
+    }
+
+    return NULL;
+}

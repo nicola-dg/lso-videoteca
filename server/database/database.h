@@ -3,6 +3,7 @@
 #include <libpq-fe.h>
 #include <stdbool.h>
 #include <jansson.h>
+#include <string.h>
 
 // Funzioni per la connessione al database
 void database_connect();
@@ -21,31 +22,32 @@ void prepare_delete_statements();
 void prepare_select_statements();
 
 // Funzioni per l'inserimento dei dati
-void insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role);
-void insert_movie(const char *title, const char *genre, int total_copies, int available_copies, int loan_count);
-void insert_loan(int movie_id, int user_id, const char *due_date);
-void insert_cart(int movie_id, int user_id, const char *checkout_date);
+bool insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role);
+bool insert_film(const char *title, const char *genre, int total_copies, int available_copies, int loan_count);
+bool insert_loan(int movie_id, int user_id, const char *due_date);
+bool insert_cart(int movie_id, int user_id, const char *checkout_date);
 
 // Funzioni per l'aggiornamento dei dati
-void update_user(const char *password, const char *email, const char *name, const char *surname, int max_loans, const char *username);
-void update_movie(int available_copies, int movie_id);
-void update_loan(const char *return_date, int loan_id);
-void update_cart(const char *checkout_date, int cart_id);
+bool update_user(const char *password, const char *email, const char *name, const char *surname, int max_loans, const char *username);
+bool update_film(int available_copies, int movie_id);
+bool update_loan(const char *return_date, int loan_id);
+bool update_cart(const char *checkout_date, int cart_id);
 
 // Funzioni per l'eliminazione dei dati
-void delete_user(int user_id);
-void delete_movie(int movie_id);
-void delete_loan(int loan_id);
-void delete_cart(int cart_id);
+bool delete_user(int user_id);
+bool delete_film(int movie_id);
+bool delete_loan(int loan_id);
+bool delete_cart(int cart_id);
 
 // Funzione per leggere i dati
 void select_all_users();
 void select_user_by_id(int user_id);
 bool select_user_by_username_and_password(const char *username, const char *password);
+bool select_user_id_by_username(char *username, char *user_id);
 
 char *select_all_films();
 
 // Funzione di esecuzione di query preparate
-void execute_prepared_statement(const char *stmt_name, int nParams, const char **paramValues);
+bool execute_prepared_statement(const char *stmt_name, int nParams, const char **paramValues);
 
 void database_start(bool reset);

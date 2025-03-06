@@ -1,5 +1,6 @@
 package com.lso.client.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lso.client.DTO.UserDTO;
 import com.lso.client.model.LoginForm;
 import com.lso.client.model.RegistrationForm;
@@ -15,7 +16,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 
 @Controller
 public class AuthController {
@@ -62,7 +62,8 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@Valid @ModelAttribute RegistrationForm form, BindingResult result, Model model) {
+    public String register(@Valid @ModelAttribute RegistrationForm form, BindingResult result, Model model,
+            HttpSession session) {
         if (result.hasErrors()) {
             return "registration";
         }
@@ -84,8 +85,6 @@ public class AuthController {
             return "registration";
         }
     }
-
-   
 
     @GetMapping("/logout")
     public String logout(HttpSession session) {

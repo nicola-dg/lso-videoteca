@@ -1,8 +1,11 @@
 package com.lso.client.controller;
 
+import com.lso.client.DTO.FilmDTO;
 import com.lso.client.service.RequestService;
+import com.lso.client.service.ResponseService;
 import com.lso.client.service.ResponseService.Response;
 import com.lso.client.service.SocketClient;
+import com.lso.client.types.Header;
 import com.lso.client.types.Method;
 
 import jakarta.servlet.http.HttpSession;
@@ -11,30 +14,34 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.List;
 
 @Controller
 @RequestMapping("/")
 public class MovieController {
 
     private RequestService requestService;
-        private SocketClient socket;
-    
-        public MovieController(RequestService requestService, SocketClient socket) {
-            this.requestService = requestService;
-            this.socket = socket;
-        }
+    private SocketClient socket;
+    private ResponseService responseService;
+
+    public MovieController(RequestService requestService, SocketClient socket, ResponseService responseService) {
+        this.requestService = requestService;
+        this.socket = socket;
+        this.responseService = responseService;
+    }
 
     @GetMapping("/home")
     public String getAllMovies(Model model, HttpSession session) {
-        // try {
-        //     Response response = userSocket.sendRequest("GET_ALL_MOVIES");
-        //     model.addAttribute("movies", response);
-        //     return "main";
-        // } catch (IOException e) {
-        //     model.addAttribute("error", "Errore di connessione");
-        //     return "main";
-        // }
-        Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/film"));
+        String jwt = (String) session.getAttribute("jwt");
+        Response res = requestService
+                .sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/film").setHeader(new Header("Authorization", "Bearer " + jwt)));
+        try {
+            List<FilmDTO> films = responseService.parseFilms(res.getPayload());
+            films.forEach(System.out::println);
+         } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+         }
 
         return "main";
     }
@@ -45,16 +52,14 @@ public class MovieController {
             @RequestParam String genre,
             @RequestParam double price,
             HttpSession session) {
-        SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-        if (userSocket == null)
-            return "redirect:/login";
 
-        try {
-            userSocket.sendRequest("ADD_MOVIE;" + title + ";" + genre + ";" + price);
+            FilmDTO film = new FilmDTO();
+            film.setTitle(title);
+            film.setGenre(genre);
+            film.setPrice(price);
+            Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.POST).setPath("/film").setPayload(film.toJSON()));
             return "redirect:/admin-dashboard";
-        } catch (IOException e) {
-            return "redirect:/admin-dashboard?error";
-        }
+       
     }
 
     @GetMapping("/loans")
