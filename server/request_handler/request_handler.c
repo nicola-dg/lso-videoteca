@@ -42,7 +42,7 @@ bool handle_post_film_request(request_t *req, int client_socket)
     // else
     // {
     // char *role = jwt_extract_user_role(jwt);
-    // if (strcmp(role, "USER"))
+    // if (strcmp(role, "USER") == 0)
     // { // DOVRA' CONTROLLARE CHE SIA NEGOZIANTE METTO USER PER TESTARE
     film_t *film = extract_film_from_json(req->payload);
     if (insert_film(film->title, film->genre, film->price))
@@ -83,6 +83,58 @@ bool handle_post_message_request(request_t *req, int client_socket)
     return true;
 }
 
+bool handle_post_cart_film_request(request_t *req, int client_socket)
+{
+    printf("POST /cart/film request ricevuta...\n");
+    print_request(req);
+    response_t *res = init_response();
+    printf("Controllo se l'utente è un USER...\n");
+    // if (isUser(req))
+    // {
+    film_t *film = extract_film_from_json(req->payload);
+    char *film_id = malloc(sizeof(char) * 100);
+    select_film_id_by_title(film->title, film_id);
+    if (!film_id)
+    {
+        return false;
+    }
+    if (insert_cart(film_id, "1")) // TODO: USER ID VA ESTRATTO DAL JWT
+    {
+        free(film);
+        free(film_id);
+        strcpy(res->status_code, "200");
+        strcpy(res->phrase, "ok");
+    }
+    else
+    {
+        free(film);
+        free(film_id);
+        strcpy(res->status_code, "400");
+        strcpy(res->phrase, "Can't add to cart");
+    }
+    //}
+    // else
+    // {
+    //     strcpy(res->status_code, "402");
+    //     strcpy(res->phrase, "Don't have permissions");
+    // }
+
+    send_response(res, client_socket);
+    free_request(req);
+    free_response(res);
+    return true;
+}
+
+bool handle_post_loan_film_request(request_t *req, int client_socket)
+{
+    printf("Controllo se l'utente è un USER...\n");
+    printf("POST /loan/film request ricevuta...\n");
+    // Aggiungi qui il codice per gestire la richiesta GET
+    print_request(req);
+
+    // liberare la memoria della request (free_request(req))
+    return true;
+}
 /*------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------*/
@@ -166,28 +218,6 @@ bool handle_get_film_request(request_t *req, int client_socket)
     free_response(res);
     free(films); // Libera la memoria allocata per la stringa dei film
 
-    return true;
-}
-
-bool handle_get_cart_film_request(request_t *req, int client_socket)
-{
-    printf("Controllo se l'utente è un USER...\n");
-    printf("GET /cart/film request ricevuta...\n");
-    // Aggiungi qui il codice per gestire la richiesta GET
-    print_request(req);
-
-    // liberare la memoria della request (free_request(req))
-    return true;
-}
-
-bool handle_get_loan_film_request(request_t *req, int client_socket)
-{
-    printf("Controllo se l'utente è un USER...\n");
-    printf("GET /loan/film request ricevuta...\n");
-    // Aggiungi qui il codice per gestire la richiesta GET
-    print_request(req);
-
-    // liberare la memoria della request (free_request(req))
     return true;
 }
 

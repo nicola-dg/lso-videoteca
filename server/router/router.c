@@ -10,14 +10,6 @@ void route_get_request(request_t *req, int client_socket)
     {
         handle_get_film_request(req, client_socket);
     }
-    else if (strcmp(req->path, "/cart/film") == 0)
-    {
-        handle_get_cart_film_request(req, client_socket);
-    }
-    else if (strcmp(req->path, "/loan/film") == 0)
-    {
-        handle_get_loan_film_request(req, client_socket);
-    }
     else if (strcmp(req->path, "/film/info") == 0)
     {
         handle_get_film_info_request(req, client_socket);
@@ -45,6 +37,14 @@ void route_post_request(request_t *req, int client_socket)
     else if (strcmp(req->path, "/message") == 0)
     {
         handle_post_message_request(req, client_socket);
+    }
+    else if (strcmp(req->path, "/cart/film") == 0)
+    {
+        handle_post_cart_film_request(req, client_socket);
+    }
+    else if (strcmp(req->path, "/loan/film") == 0)
+    {
+        handle_post_loan_film_request(req, client_socket);
     }
 }
 

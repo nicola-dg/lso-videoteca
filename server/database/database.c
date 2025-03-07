@@ -34,10 +34,10 @@ void database_connect()
 void reset_tables()
 {
     const char *queries[] = {
-        "TRUNCATE TABLE IF EXISTS carts RESTART IDENTITY CASCADE;",
-        "TRUNCATE TABLE IF EXISTS loans RESTART IDENTITY CASCADE;",
-        "TRUNCATE TABLE IF EXISTS films RESTART IDENTITY CASCADE;",
-        "TRUNCATE TABLE IF EXISTS users RESTART IDENTITY CASCADE;"};
+        "TRUNCATE TABLE carts RESTART IDENTITY CASCADE;",
+        "TRUNCATE TABLE loans RESTART IDENTITY CASCADE;",
+        "TRUNCATE TABLE films RESTART IDENTITY CASCADE;",
+        "TRUNCATE TABLE users RESTART IDENTITY CASCADE;"};
 
     size_t num_queries = sizeof(queries) / sizeof(queries[0]);
 
@@ -174,8 +174,8 @@ void prepare_insert_statements()
 
     // Statement per inserire un carrello
     res = PQprepare(conn, "insert_cart",
-                    "INSERT INTO carts (film_id, user_id, checkout_date) VALUES ($1, $2, $3);",
-                    3, NULL);
+                    "INSERT INTO carts (film_id, user_id) VALUES ($1, $2);",
+                    2, NULL);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         fprintf(stderr, "Errore preparazione query insert_cart: %s\n", PQerrorMessage(conn));
@@ -201,10 +201,10 @@ bool insert_loan(int film_id, int user_id, const char *due_date)
     return execute_prepared_statement("insert_loan", 3, paramValues);
 }
 
-bool insert_cart(int film_id, int user_id, const char *checkout_date)
+bool insert_cart(char* film_id, char* user_id)
 {
-    const char *paramValues[3] = {(const char *)&film_id, (const char *)&user_id, checkout_date};
-    return execute_prepared_statement("insert_cart", 3, paramValues);
+    const char *paramValues[2] = {film_id, user_id};
+    return execute_prepared_statement("insert_cart", 2, paramValues);
 }
 
 void prepare_update_statements()
@@ -344,7 +344,13 @@ void prepare_select_statements()
     // Query preparata per ottenere user_id a partire dallo username
     res = PQprepare(conn, "select_user_id_by_username",
                     "SELECT id FROM users WHERE username = $1 ;",
-                    0, NULL);
+                    1, NULL);
+    PQclear(res);
+
+     // Query preparata per ottenere film_id a partire dal titolo
+     res = PQprepare(conn, "select_film_id_by_title",
+        "SELECT id FROM films WHERE title = $1 ;",
+        1, NULL);
     PQclear(res);
 }
 
@@ -508,6 +514,37 @@ char *select_all_films()
     json_decref(film_array); // Libera la struttura JSON (ma non la stringa)
 
     return json_string_result;
+}
+
+bool select_film_id_by_title(char* title, char* film_id){
+    const char *paramValues[1] = {title};
+
+    // Esegui la query preparata per ottenere l'ID utente in base allo username
+    PGresult *res = PQexecPrepared(conn, "select_film_id_by_title", 1, paramValues, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        // Se c'è un errore, stampiamo un messaggio di errore e liberiamo la memoria
+        fprintf(stderr, "Errore nella SELECT per title: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+
+    if (PQntuples(res) == 0)
+    {
+        // Se non ci sono righe nel risultato, l'utente non è stato trovato
+        printf("film non trovato.\n");
+        PQclear(res);
+        return false;
+    }
+    else
+    {
+        strcpy(film_id, PQgetvalue(res, 0, 0)); 
+        printf("ID film: %s\n", film_id);
+    }
+
+    PQclear(res);
+    return true;
 }
 
 void database_close_connection()

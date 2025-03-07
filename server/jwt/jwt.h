@@ -1,8 +1,10 @@
+#pragma once
 #include <jwt.h>
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include "../types/request_type.h"
 
 #define VERY_SECRET_KEY "s_3cr3!7"
 #define MAX_USER_ID_LEN 50
