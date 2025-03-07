@@ -23,7 +23,7 @@ public class FilmDTO {
     private String loanCount;
 
     @JsonProperty("price")
-    private Double price = 0.0;
+    private Double price;
 
     // Costruttore vuoto
     public FilmDTO() {

@@ -73,11 +73,11 @@ void create_tables()
 
         "CREATE TABLE IF NOT EXISTS films ("
         "id SERIAL PRIMARY KEY, "
-        "title TEXT NOT NULL, "
+        "title TEXT NOT NULL UNIQUE, "
         "genre TEXT, "
         "price NUMERIC(10,2) DEFAULT 0.00, "
-        "total_copies INTEGER DEFAULT 0, "
-        "available_copies INTEGER DEFAULT 0, "
+        "total_copies INTEGER DEFAULT 1, "
+        "available_copies INTEGER DEFAULT 1, "
         "loan_count INTEGER DEFAULT 0);",
 
         "CREATE TABLE IF NOT EXISTS loans ("
@@ -162,16 +162,6 @@ void prepare_insert_statements()
     }
     PQclear(res);
 
-    // Statement per inserire un prestito
-    res = PQprepare(conn, "insert_loan",
-                    "INSERT INTO loans (film_id, user_id, due_date) VALUES ($1, $2, $3);",
-                    3, NULL);
-    if (PQresultStatus(res) != PGRES_COMMAND_OK)
-    {
-        fprintf(stderr, "Errore preparazione query insert_loan: %s\n", PQerrorMessage(conn));
-    }
-    PQclear(res);
-
     // Statement per inserire un carrello
     res = PQprepare(conn, "insert_cart",
                     "INSERT INTO carts (film_id, user_id) VALUES ($1, $2);",
@@ -195,13 +185,108 @@ bool insert_film(const char *title, const char *genre, const char *price)
     return execute_prepared_statement("insert_film", 3, paramValues);
 }
 
-bool insert_loan(int film_id, int user_id, const char *due_date)
+bool insert_loan(char *film_id, char *user_id)
 {
-    const char *paramValues[3] = {(const char *)&film_id, (const char *)&user_id, due_date};
-    return execute_prepared_statement("insert_loan", 3, paramValues);
+    PGresult *res;
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Query to check available copies
+    const char *check_query =
+        "SELECT available_copies FROM films WHERE id = $1";
+
+    // Prepare parameter values for the query
+    const char *paramValues[1] = {film_id};
+
+    // Execute the query to check available copies
+    res = PQexecParams(conn, check_query, 1, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        fprintf(stderr, "Error executing check_query: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+
+    int available_copies = atoi(PQgetvalue(res, 0, 0)); // Get available copies from the result
+    PQclear(res);                                       // Clear the result from the previous query
+
+    // Check if there are available copies
+    if (available_copies > 0)
+    {
+        // Query to remove the film from the cart for the specific user
+        const char *delete_cart_query =
+            "DELETE FROM carts WHERE film_id = $1 AND user_id = $2";
+        const char *paramValuesCart[2] = {film_id, user_id};
+        res = PQexecParams(conn, delete_cart_query, 2, NULL, paramValuesCart, NULL, NULL, 0);
+        if (PQresultStatus(res) != PGRES_COMMAND_OK)
+        {
+            fprintf(stderr, "Error executing delete_cart_query: %s\n", PQerrorMessage(conn));
+            PQclear(res);
+            PQexec(conn, "ROLLBACK");
+            return false;
+        }
+        PQclear(res); // Clear the result from the delete query
+
+        // Query to insert the loan with film_id and user_id
+        const char *insert_loan_query =
+            "INSERT INTO loans (film_id, user_id) VALUES ($1, $2)";
+        const char *paramValuesLoan[2] = {film_id, user_id};
+        res = PQexecParams(conn, insert_loan_query, 2, NULL, paramValuesLoan, NULL, NULL, 0);
+        if (PQresultStatus(res) != PGRES_COMMAND_OK)
+        {
+            fprintf(stderr, "Error executing insert_loan_query: %s\n", PQerrorMessage(conn));
+            PQclear(res);
+            PQexec(conn, "ROLLBACK");
+            return false;
+        }
+        PQclear(res); // Clear the result from the insert query
+
+        // Query to update the loan count and available copies
+        const char *update_film_query =
+            "UPDATE films SET loan_count = loan_count + 1, "
+            "available_copies = total_copies - loan_count WHERE id = $1";
+        res = PQexecParams(conn, update_film_query, 1, NULL, paramValues, NULL, NULL, 0);
+        if (PQresultStatus(res) != PGRES_COMMAND_OK)
+        {
+            fprintf(stderr, "Error executing update_film_query: %s\n", PQerrorMessage(conn));
+            PQclear(res);
+            PQexec(conn, "ROLLBACK");
+            return false;
+        }
+        PQclear(res); // Clear the result from the update query
+
+        // Commit the transaction if everything is successful
+        res = PQexec(conn, "COMMIT");
+        if (PQresultStatus(res) != PGRES_COMMAND_OK)
+        {
+            fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+            PQclear(res);
+            return false;
+        }
+        PQclear(res);
+    }
+    else
+    {
+        // If no copies are available, raise an error
+        fprintf(stderr, "Error: No copies available for film ID %s\n", film_id);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+
+    printf("Loan successfully inserted for film ID %s and user ID %s\n", film_id, user_id);
+    return true;
 }
 
-bool insert_cart(char* film_id, char* user_id)
+bool insert_cart(char *film_id, char *user_id)
 {
     const char *paramValues[2] = {film_id, user_id};
     return execute_prepared_statement("insert_cart", 2, paramValues);
@@ -234,6 +319,12 @@ void prepare_update_statements()
                     "UPDATE carts SET checkout_date = $1 WHERE id = $2;",
                     2, NULL);
     PQclear(res);
+
+    // Statement per aggiornare la data di checkout di un carrello
+    res = PQprepare(conn, "update_film_return",
+                    "UPDATE loans SET return_date = NOW() WHERE film_id = $1 AND user_id = $2;",
+                    2, NULL);
+    PQclear(res);
 }
 
 bool update_user(const char *password, const char *email, const char *name, const char *surname, int max_loans, const char *username)
@@ -246,6 +337,12 @@ bool update_film(int available_copies, int film_id)
 {
     const char *paramValues[2] = {(const char *)&available_copies, (const char *)&film_id};
     return execute_prepared_statement("update_film", 2, paramValues);
+}
+
+bool update_film_return(char *film_id, char *user_id)
+{
+    const char *paramValues[2] = {film_id, user_id};
+    return execute_prepared_statement("update_film_return", 2, paramValues);
 }
 
 bool update_loan(const char *return_date, int loan_id)
@@ -347,10 +444,10 @@ void prepare_select_statements()
                     1, NULL);
     PQclear(res);
 
-     // Query preparata per ottenere film_id a partire dal titolo
-     res = PQprepare(conn, "select_film_id_by_title",
-        "SELECT id FROM films WHERE title = $1 ;",
-        1, NULL);
+    // Query preparata per ottenere film_id a partire dal titolo
+    res = PQprepare(conn, "select_film_id_by_title",
+                    "SELECT id FROM films WHERE title = $1 ;",
+                    1, NULL);
     PQclear(res);
 }
 
@@ -516,7 +613,8 @@ char *select_all_films()
     return json_string_result;
 }
 
-bool select_film_id_by_title(char* title, char* film_id){
+bool select_film_id_by_title(char *title, char *film_id)
+{
     const char *paramValues[1] = {title};
 
     // Esegui la query preparata per ottenere l'ID utente in base allo username
@@ -539,7 +637,7 @@ bool select_film_id_by_title(char* title, char* film_id){
     }
     else
     {
-        strcpy(film_id, PQgetvalue(res, 0, 0)); 
+        strcpy(film_id, PQgetvalue(res, 0, 0));
         printf("ID film: %s\n", film_id);
     }
 

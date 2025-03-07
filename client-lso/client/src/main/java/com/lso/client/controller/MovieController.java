@@ -71,39 +71,94 @@ public class MovieController {
                 .setPath("/film")
                 .setPayload(film.toJSON())
                 .setHeader(new Header("Authorization", "Bearer " + jwt)));
-        return "redirect:/admin-dashboard";
+        return "redirect:/user-profile-test";
 
     }
 
-    @GetMapping("/loans")
-    public String getLoans(Model model, HttpSession session) {
-        SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-        if (userSocket == null)
-            return "redirect:/login";
-
-        try {
-            String response = userSocket.sendRequest("GET_LOANS");
-            model.addAttribute("loans", response);
-            return "loansPage";
-        } catch (IOException e) {
-            model.addAttribute("error", "Errore di connessione");
-            return "loansPage";
-        }
+    @GetMapping("/cart/film")
+    public String showAddFilmToCart() {
+        return "add-to-cart";
     }
 
-    @GetMapping("/user/{userId}/movies")
-    public String getUserMovies(@PathVariable String userId, Model model, HttpSession session) {
-        SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-        if (userSocket == null)
-            return "redirect:/login";
+    @PostMapping("/cart/film")
+    public String addFilmToCart(HttpSession session, @RequestParam String title) {
+        String jwt = (String) session.getAttribute("jwt");
+        FilmDTO film = new FilmDTO();
+        film.setTitle(title);
+        Response res = requestService.sendRequest(requestService.createRequest()
+                .setMethod(Method.POST)
+                .setPath("/cart/film")
+                .setPayload(film.toJSON())
+                .setHeader(new Header("Authorization", "Bearer " + jwt)));
 
-        try {
-            String response = userSocket.sendRequest("GET_USER_MOVIES;" + userId);
-            model.addAttribute("userMovies", response);
-            return "user-profile";
-        } catch (IOException e) {
-            model.addAttribute("error", "Errore di connessione");
-            return "main";
-        }
+        return "redirect:/user-profile-test";
     }
+
+    // @GetMapping("/loans") //L'UTENTE VEDE I NOLEGGI ATTIVI
+    // public String getLoans(Model model, HttpSession session) {
+    // SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
+    // if (userSocket == null)
+    // return "redirect:/login";
+
+    // try {
+    // String response = userSocket.sendRequest("GET_LOANS");
+    // model.addAttribute("loans", response);
+    // return "loansPage";
+    // } catch (IOException e) {
+    // model.addAttribute("error", "Errore di connessione");
+    // return "loansPage";
+    // }
+    // }
+
+    @GetMapping("/loan/film")
+    public String showAddFilmToLoan() {
+        return "add-to-loan";
+    }
+
+    @PostMapping("/loan/film") // IL FILM VIENE SPOSTATO DA CARRELLO A LOAN
+    public String addFilmToLoan(HttpSession session, @RequestParam String id) {
+        String jwt = (String) session.getAttribute("jwt");
+        FilmDTO film = new FilmDTO();
+        film.setId(id);
+        Response res = requestService
+                .sendRequest(requestService.createRequest().setMethod(Method.POST).setPath("/loan/film")
+                        .setPayload(film.toJSON()).setHeader(new Header("Authorization", "Bearer " + jwt)));
+
+        return "loansPage";
+    }
+
+    @GetMapping("/loan/film/return")
+    public String showReturnFilmToLoan() {
+        return "return-film-loan";
+    }
+    
+    @PostMapping("/loan/film/return")
+    public String returnFilmLoan(HttpSession session, @RequestParam String id) {
+        System.out.println("loan film con PUT attivata");
+        String jwt = (String) session.getAttribute("jwt");
+        FilmDTO film = new FilmDTO();
+        film.setId(id);
+        Response res = requestService
+                .sendRequest(requestService.createRequest().setMethod(Method.PUT).setPath("/loan/film")
+                        .setPayload(film.toJSON()).setHeader(new Header("Authorization", "Bearer " + jwt)));
+
+        return "user-profile-test";
+    }
+
+    // @GetMapping("/user/{userId}/movies")
+    // public String getUserMovies(@PathVariable String userId, Model model,
+    // HttpSession session) {
+    // SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
+    // if (userSocket == null)
+    // return "redirect:/login";
+
+    // try {
+    // String response = userSocket.sendRequest("GET_USER_MOVIES;" + userId);
+    // model.addAttribute("userMovies", response);
+    // return "user-profile";
+    // } catch (IOException e) {
+    // model.addAttribute("error", "Errore di connessione");
+    // return "main";
+    // }
+    // }
 }

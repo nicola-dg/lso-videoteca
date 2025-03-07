@@ -24,7 +24,7 @@ void prepare_select_statements();
 // Funzioni per l'inserimento dei dati
 bool insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role);
 bool insert_film(const char *title, const char *genre, const char *price);
-bool insert_loan(int movie_id, int user_id, const char *due_date);
+bool insert_loan(char *film_id, char *user_id);
 bool insert_cart(char *movie_id, char *user_id);
 
 // Funzioni per l'aggiornamento dei dati
@@ -32,6 +32,7 @@ bool update_user(const char *password, const char *email, const char *name, cons
 bool update_film(int available_copies, int movie_id);
 bool update_loan(const char *return_date, int loan_id);
 bool update_cart(const char *checkout_date, int cart_id);
+bool update_film_return(char *film_id, char *user_id);
 
 // Funzioni per l'eliminazione dei dati
 bool delete_user(int user_id);

@@ -11,6 +11,9 @@ import com.lso.client.types.Method;
 
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
+
+import java.io.IOException;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -61,6 +64,7 @@ public class AuthController {
         return "registration";
     }
 
+    
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute RegistrationForm form, BindingResult result, Model model,
             HttpSession session) {
