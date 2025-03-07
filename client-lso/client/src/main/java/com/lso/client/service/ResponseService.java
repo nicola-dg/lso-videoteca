@@ -67,7 +67,7 @@ public class ResponseService {
             throw new RuntimeException("Errore nel parsing della risposta JSON", e);
         }
     }
-
+    
     public List<FilmDTO> parseFilms(String jsonPayload) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(jsonPayload, new TypeReference<List<FilmDTO>>() {

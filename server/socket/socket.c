@@ -12,7 +12,7 @@ void *handle_client(void *client_void_ptr)
     char buffer[BUFFERSIZE] = {0};
     int bytesRead;
 
-    database_start(false);
+    database_start(true);
 
     // Ciclo per continuare a leggere finché il client non invia "Connection: close"
     while (1)

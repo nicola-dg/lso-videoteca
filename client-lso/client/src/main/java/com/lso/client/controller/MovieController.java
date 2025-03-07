@@ -30,7 +30,7 @@ public class MovieController {
         this.socket = socket;
         this.responseService = responseService;
     }
-
+    
     @GetMapping("/home")
     public String getAllMovies(Model model, HttpSession session) {
         String jwt = (String) session.getAttribute("jwt");
@@ -72,7 +72,7 @@ public class MovieController {
                 .setPath("/film")
                 .setPayload(film.toJSON())
                 .setHeader(new Header("Authorization", "Bearer " + jwt)));
-        return "redirect:/user-profile-test";
+        return "user-profile-test";
 
     }
 
@@ -92,7 +92,7 @@ public class MovieController {
                 .setPayload(film.toJSON())
                 .setHeader(new Header("Authorization", "Bearer " + jwt)));
 
-        return "redirect:/user-profile-test";
+        return "user-profile-test";
     }
 
     @GetMapping("/loan") // L'UTENTE VEDE I NOLEGGI ATTIVI
@@ -125,7 +125,7 @@ public class MovieController {
                 .sendRequest(requestService.createRequest().setMethod(Method.POST).setPath("/loan/film")
                         .setPayload(film.toJSON()).setHeader(new Header("Authorization", "Bearer " + jwt)));
 
-        return "loansPage";
+        return "loans-page";
     }
 
     @GetMapping("/loan/film/return")
@@ -146,20 +146,4 @@ public class MovieController {
         return "user-profile-test";
     }
 
-    // @GetMapping("/user/{userId}/movies")
-    // public String getUserMovies(@PathVariable String userId, Model model,
-    // HttpSession session) {
-    // SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-    // if (userSocket == null)
-    // return "redirect:/login";
-
-    // try {
-    // String response = userSocket.sendRequest("GET_USER_MOVIES;" + userId);
-    // model.addAttribute("userMovies", response);
-    // return "user-profile";
-    // } catch (IOException e) {
-    // model.addAttribute("error", "Errore di connessione");
-    // return "main";
-    // }
-    // }
 }
