@@ -279,6 +279,45 @@ bool handle_get_message_request(request_t *req, int client_socket)
     return true;
 }
 
+bool handle_get_loan_request(request_t *req, int client_socket){
+    printf("GET /loan request ricevuta...\n");
+    print_request(req);
+
+    response_t *res = init_response();
+
+    //TODO: CONTROLLA CHE SIA USER
+    char *loans = select_active_loans_by_id("1"); //TODO: USERID VA RECUPERATO DAL JWT
+
+    if (loans == NULL)
+    {
+        strcpy(res->status_code, "500");
+        strcpy(res->phrase, "Server Error");
+        strcpy(res->payload, " ");
+    }
+    else if (strlen(loans) == 0)
+    {
+        // Nessun film trovato
+        strcpy(res->status_code, "404");
+        strcpy(res->phrase, "Not Found");
+        strcpy(res->payload, "Nessun film disponibile.");
+    }
+    else
+    {
+        // Film trovati con successo
+        strcpy(res->status_code, "200");
+        strcpy(res->phrase, "Ok");
+        strcpy(res->payload, loans);
+    }
+
+    send_response(res, client_socket);
+
+    free_request(req);
+    free_response(res);
+    free(loans); // Libera la memoria allocata per la stringa dei film
+
+    return true;
+}
+
 /*------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------*/

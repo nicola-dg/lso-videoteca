@@ -21,6 +21,10 @@ void route_get_request(request_t *req, int client_socket)
     else if (strcmp(req->path, "/message") == 0)
     {
         handle_get_message_request(req, client_socket);
+    } 
+    else if (strcmp(req->path, "/loan") == 0)
+    {
+        handle_get_loan_request(req, client_socket);
     }
 }
 

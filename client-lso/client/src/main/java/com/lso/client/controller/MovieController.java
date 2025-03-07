@@ -1,6 +1,7 @@
 package com.lso.client.controller;
 
 import com.lso.client.DTO.FilmDTO;
+import com.lso.client.DTO.LoanDTO;
 import com.lso.client.service.RequestService;
 import com.lso.client.service.ResponseService;
 import com.lso.client.service.ResponseService.Response;
@@ -94,21 +95,21 @@ public class MovieController {
         return "redirect:/user-profile-test";
     }
 
-    // @GetMapping("/loans") //L'UTENTE VEDE I NOLEGGI ATTIVI
-    // public String getLoans(Model model, HttpSession session) {
-    // SocketClient userSocket = (SocketClient) session.getAttribute("userSocket");
-    // if (userSocket == null)
-    // return "redirect:/login";
-
-    // try {
-    // String response = userSocket.sendRequest("GET_LOANS");
-    // model.addAttribute("loans", response);
-    // return "loansPage";
-    // } catch (IOException e) {
-    // model.addAttribute("error", "Errore di connessione");
-    // return "loansPage";
-    // }
-    // }
+    @GetMapping("/loan") // L'UTENTE VEDE I NOLEGGI ATTIVI
+    public String getLoans(Model model, HttpSession session) {
+        String jwt = (String) session.getAttribute("jwt");
+        Response res = requestService
+                .sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/loan")
+                        .setHeader(new Header("Authorization", "Bearer " + jwt)));
+        try {
+            List<LoanDTO> loans = responseService.parseLoans(res.getPayload());
+            loans.forEach(System.out::println);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return "loans-page";
+    }
 
     @GetMapping("/loan/film")
     public String showAddFilmToLoan() {
@@ -128,10 +129,10 @@ public class MovieController {
     }
 
     @GetMapping("/loan/film/return")
-    public String showReturnFilmToLoan() {
+    public String showReturnFilmLoan() {
         return "return-film-loan";
     }
-    
+
     @PostMapping("/loan/film/return")
     public String returnFilmLoan(HttpSession session, @RequestParam String id) {
         System.out.println("loan film con PUT attivata");

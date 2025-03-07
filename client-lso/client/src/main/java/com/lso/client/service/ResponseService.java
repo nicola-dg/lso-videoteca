@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lso.client.DTO.FilmDTO;
+import com.lso.client.DTO.LoanDTO;
 
 @Service
 public class ResponseService {
@@ -46,7 +47,7 @@ public class ResponseService {
 
         @Override
         public String toString() {
-            return "Status Code: " + getStatusCode() +"\nPhrase: " + getPhrase() + "\nPayload: " + getPayload();
+            return "Status Code: " + getStatusCode() + "\nPhrase: " + getPhrase() + "\nPayload: " + getPayload();
         }
 
     }
@@ -56,7 +57,7 @@ public class ResponseService {
             JsonNode root = objectMapper.readTree(json);
             ResponseService responseService = new ResponseService();
             Response response = new Response();
-            
+
             response.setStatusCode(root.path("Status Code").asText());
             response.setPhrase(root.path("Phrase").asText());
             response.setPayload(root.path("Payload").asText());
@@ -68,9 +69,15 @@ public class ResponseService {
     }
 
     public List<FilmDTO> parseFilms(String jsonPayload) throws IOException {
-            ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.readValue(jsonPayload, new TypeReference<List<FilmDTO>>() {});
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(jsonPayload, new TypeReference<List<FilmDTO>>() {
+        });
     }
 
+    public List<LoanDTO> parseLoans(String jsonPayload) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(jsonPayload, new TypeReference<List<LoanDTO>>() {
+        });
+    }
 
 }

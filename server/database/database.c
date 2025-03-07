@@ -85,7 +85,7 @@ void create_tables()
         "film_id INTEGER REFERENCES films(id) ON DELETE CASCADE, "
         "user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, "
         "checkout_date TIMESTAMP DEFAULT NOW(),"
-        "due_date TIMESTAMP, "
+        "due_date TIMESTAMP DEFAULT NOW() + INTERVAL '14 days', "
         "return_date TIMESTAMP);",
 
         "CREATE TABLE IF NOT EXISTS carts ("
@@ -449,6 +449,21 @@ void prepare_select_statements()
                     "SELECT id FROM films WHERE title = $1 ;",
                     1, NULL);
     PQclear(res);
+
+    // Query preparata per ottenere loans a partire dal id
+    // res = PQprepare(conn, "select_active_loans_by_id",
+    //                 "SELECT * FROM loans WHERE user_id = $1 ;",
+    //                 1, NULL);
+    // PQclear(res);
+
+    res = PQprepare(conn, "select_active_loans_by_id",
+                    "SELECT l.id AS loan_id, l.film_id, l.user_id, l.checkout_date, "
+                    "l.due_date, l.return_date, f.title AS film_title "
+                    "FROM loans l "
+                    "JOIN films f ON l.film_id = f.id "
+                    "WHERE l.user_id = $1;",
+                    1, NULL);
+    PQclear(res);
 }
 
 void select_all_users()
@@ -609,6 +624,48 @@ char *select_all_films()
     // Converti il JSON in una stringa (il chiamante deve liberare la memoria con `free`)
     char *json_string_result = json_dumps(film_array, JSON_INDENT(4));
     json_decref(film_array); // Libera la struttura JSON (ma non la stringa)
+
+    return json_string_result;
+}
+
+char *select_active_loans_by_id(char *user_id)
+{
+    // Parametri per la query preparata: user_id
+    const char *paramValues[1] = {user_id};
+
+    // Esegui la query preparata passando il parametro user_id
+    PGresult *res = PQexecPrepared(conn, "select_active_loans_by_id", 1, paramValues, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        fprintf(stderr, "Errore nell'esecuzione della SELECT: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return NULL;
+    }
+
+    int rows = PQntuples(res);         // Numero di righe restituite
+    json_t *loan_array = json_array(); // Array JSON per contenere i film
+
+    for (int i = 0; i < rows; i++)
+    {
+        json_t *loan_json = json_object(); // Oggetto JSON per un singolo film
+
+        json_object_set_new(loan_json, "id", json_string(PQgetvalue(res, i, 0)));
+        json_object_set_new(loan_json, "film_id", json_string(PQgetvalue(res, i, 1)));
+        json_object_set_new(loan_json, "user_id", json_string(PQgetvalue(res, i, 2)));
+        json_object_set_new(loan_json, "checkout_date", json_string(PQgetvalue(res, i, 3)));
+        json_object_set_new(loan_json, "due_date", json_string(PQgetvalue(res, i, 4)));
+        json_object_set_new(loan_json, "return_date", json_string(PQgetvalue(res, i, 5)));
+        json_object_set_new(loan_json, "film_title", json_string(PQgetvalue(res, i, 6)));
+
+        json_array_append_new(loan_array, loan_json); // Aggiunge il film all'array JSON
+    }
+
+    PQclear(res); // Libera il risultato della query
+
+    // Converti il JSON in una stringa (il chiamante deve liberare la memoria con `free`)
+    char *json_string_result = json_dumps(loan_array, JSON_INDENT(4));
+    json_decref(loan_array); // Libera la struttura JSON (ma non la stringa)
 
     return json_string_result;
 }
