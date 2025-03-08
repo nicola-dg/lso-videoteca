@@ -252,7 +252,6 @@ bool handle_get_film_info_request(request_t *req, int client_socket)
     printf("GET /film/info request ricevuta...\n");
     // Aggiungi qui il codice per gestire la richiesta GET
     print_request(req);
-
     // liberare la memoria della request (free_request(req))
     return true;
 }

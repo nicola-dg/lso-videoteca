@@ -80,7 +80,7 @@ public class MovieController {
     public String showAddFilmToCart() {
         return "add-to-cart";
     }
-
+    
     @PostMapping("/cart/film")
     public String addFilmToCart(HttpSession session, @RequestParam String title) {
         String jwt = (String) session.getAttribute("jwt");

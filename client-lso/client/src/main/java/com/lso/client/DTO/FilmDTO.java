@@ -95,7 +95,7 @@ public class FilmDTO {
                 ", genre='" + genre + '\'' +
                 ", totalCopies=" + totalCopies +
                 ", availableCopies=" + availableCopies +
-                ", price=" + price.toString() +
+                ", price=" + (price != null ? price.toString() : null) +
                 ", loanCount=" + loanCount +
                 '}';
     }

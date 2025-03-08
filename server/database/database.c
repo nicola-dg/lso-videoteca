@@ -222,69 +222,79 @@ bool insert_loan(char *film_id, char *user_id)
     // Check if there are available copies
     if (available_copies > 0)
     {
-        // Query to remove the film from the cart for the specific user
-        const char *delete_cart_query =
-            "DELETE FROM carts WHERE film_id = $1 AND user_id = $2";
-        const char *paramValuesCart[2] = {film_id, user_id};
-        res = PQexecParams(conn, delete_cart_query, 2, NULL, paramValuesCart, NULL, NULL, 0);
-        if (PQresultStatus(res) != PGRES_COMMAND_OK)
+        if (can_user_loan(user_id))
         {
-            fprintf(stderr, "Error executing delete_cart_query: %s\n", PQerrorMessage(conn));
+            // Query to remove the film from the cart for the specific user
+            const char *delete_cart_query =
+                "DELETE FROM carts WHERE film_id = $1 AND user_id = $2";
+            const char *paramValuesCart[2] = {film_id, user_id};
+            res = PQexecParams(conn, delete_cart_query, 2, NULL, paramValuesCart, NULL, NULL, 0);
+            if (PQresultStatus(res) != PGRES_COMMAND_OK)
+            {
+                fprintf(stderr, "Error executing delete_cart_query: %s\n", PQerrorMessage(conn));
+                PQclear(res);
+                PQexec(conn, "ROLLBACK");
+                return false;
+            }
+            PQclear(res); // Clear the result from the delete query
+
+            // Query to insert the loan with film_id and user_id
+            const char *insert_loan_query =
+                "INSERT INTO loans (film_id, user_id) VALUES ($1, $2)";
+            const char *paramValuesLoan[2] = {film_id, user_id};
+            res = PQexecParams(conn, insert_loan_query, 2, NULL, paramValuesLoan, NULL, NULL, 0);
+            if (PQresultStatus(res) != PGRES_COMMAND_OK)
+            {
+                fprintf(stderr, "Error executing insert_loan_query: %s\n", PQerrorMessage(conn));
+                PQclear(res);
+                PQexec(conn, "ROLLBACK");
+                return false;
+            }
+            PQclear(res); // Clear the result from the insert query
+
+            // Query to update the loan count
+            const char *update_loan_count_query =
+                "UPDATE films SET loan_count = loan_count + 1 WHERE id = $1";
+            res = PQexecParams(conn, update_loan_count_query, 1, NULL, paramValues, NULL, NULL, 0);
+            if (PQresultStatus(res) != PGRES_COMMAND_OK)
+            {
+                fprintf(stderr, "Error executing update_loan_count_query: %s\n", PQerrorMessage(conn));
+                PQclear(res);
+                PQexec(conn, "ROLLBACK");
+                return false;
+            }
+            PQclear(res); // Clear the result from the loan count update query
+
+            // Query to update the available copies
+            const char *update_available_copies_query =
+                "UPDATE films SET available_copies = total_copies - loan_count WHERE id = $1";
+            res = PQexecParams(conn, update_available_copies_query, 1, NULL, paramValues, NULL, NULL, 0);
+            if (PQresultStatus(res) != PGRES_COMMAND_OK)
+            {
+                fprintf(stderr, "Error executing update_available_copies_query: %s\n", PQerrorMessage(conn));
+                PQclear(res);
+                PQexec(conn, "ROLLBACK");
+                return false;
+            }
+            PQclear(res); // Clear the result from the available copies update query
+
+            // Commit the transaction if everything is successful
+            res = PQexec(conn, "COMMIT");
+            if (PQresultStatus(res) != PGRES_COMMAND_OK)
+            {
+                fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+                PQclear(res);
+                return false;
+            }
             PQclear(res);
+        }
+        else
+        {
+            // If user can't loan, raise an error
+            fprintf(stderr, "Error: Max loan number reached, return a loan to get availability.\n");
             PQexec(conn, "ROLLBACK");
             return false;
         }
-        PQclear(res); // Clear the result from the delete query
-
-        // Query to insert the loan with film_id and user_id
-        const char *insert_loan_query =
-            "INSERT INTO loans (film_id, user_id) VALUES ($1, $2)";
-        const char *paramValuesLoan[2] = {film_id, user_id};
-        res = PQexecParams(conn, insert_loan_query, 2, NULL, paramValuesLoan, NULL, NULL, 0);
-        if (PQresultStatus(res) != PGRES_COMMAND_OK)
-        {
-            fprintf(stderr, "Error executing insert_loan_query: %s\n", PQerrorMessage(conn));
-            PQclear(res);
-            PQexec(conn, "ROLLBACK");
-            return false;
-        }
-        PQclear(res); // Clear the result from the insert query
-
-        // Query to update the loan count
-        const char *update_loan_count_query =
-            "UPDATE films SET loan_count = loan_count + 1 WHERE id = $1";
-        res = PQexecParams(conn, update_loan_count_query, 1, NULL, paramValues, NULL, NULL, 0);
-        if (PQresultStatus(res) != PGRES_COMMAND_OK)
-        {
-            fprintf(stderr, "Error executing update_loan_count_query: %s\n", PQerrorMessage(conn));
-            PQclear(res);
-            PQexec(conn, "ROLLBACK");
-            return false;
-        }
-        PQclear(res); // Clear the result from the loan count update query
-
-        // Query to update the available copies
-        const char *update_available_copies_query =
-            "UPDATE films SET available_copies = total_copies - loan_count WHERE id = $1";
-        res = PQexecParams(conn, update_available_copies_query, 1, NULL, paramValues, NULL, NULL, 0);
-        if (PQresultStatus(res) != PGRES_COMMAND_OK)
-        {
-            fprintf(stderr, "Error executing update_available_copies_query: %s\n", PQerrorMessage(conn));
-            PQclear(res);
-            PQexec(conn, "ROLLBACK");
-            return false;
-        }
-        PQclear(res); // Clear the result from the available copies update query
-
-        // Commit the transaction if everything is successful
-        res = PQexec(conn, "COMMIT");
-        if (PQresultStatus(res) != PGRES_COMMAND_OK)
-        {
-            fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
-            PQclear(res);
-            return false;
-        }
-        PQclear(res);
     }
     else
     {
@@ -767,4 +777,42 @@ void database_close_connection()
         PQfinish(conn); // Chiude la connessione al database
         conn = NULL;    // Previene dangling pointers
     }
+}
+
+/* FUNZIONI AUSILIARIE */
+bool can_user_loan(char *user_id)
+{
+    PGresult *res;
+
+    // Query to get the active loans count and max_loans for the user in one step
+    const char *check_loans_query =
+        "SELECT COUNT(*) AS active_loans, max_loans "
+        "FROM loans JOIN users ON loans.user_id = users.id "
+        "WHERE loans.user_id = $1 AND loans.return_date IS NULL "
+        "GROUP BY users.id";
+
+    // Prepare parameter values for the query
+    const char *paramValuesLoans[1] = {user_id};
+
+    // Execute the query to check the active loans and max_loans
+    res = PQexecParams(conn, check_loans_query, 1, NULL, paramValuesLoans, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        fprintf(stderr, "Error executing check_loans_query: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+
+    // Get active_loans and max_loans from the result
+    int active_loans = atoi(PQgetvalue(res, 0, 0)); // Get active loans count
+    int max_loans = atoi(PQgetvalue(res, 0, 1));    // Get max_loans for the user
+    PQclear(res);                                   // Clear the result from the previous query
+
+    // Check if the user has exceeded the maximum allowed loans
+    if (active_loans >= max_loans)
+    {
+        return false;
+    }
+
+    return true;
 }

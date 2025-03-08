@@ -55,3 +55,6 @@ char *select_all_expired_loans();
 bool execute_prepared_statement(const char *stmt_name, int nParams, const char **paramValues);
 
 void database_start(bool reset);
+
+// ausiliarie
+bool can_user_loan(char *user_id);
