@@ -206,12 +206,12 @@ bool handle_get_film_request(request_t *req, int client_socket)
 
     response_t *res = init_response();
 
-    jwt_t *jwt = decode_jwt(extract_jwt_from_headers(req));
+    // jwt_t *jwt = decode_jwt(extract_jwt_from_headers(req));
 
-    const char *user_id = jwt_extract_user_id(jwt);
-    const char *user_role = jwt_extract_user_role(jwt);
+    // const char *user_id = jwt_extract_user_id(jwt);
+    // const char *user_role = jwt_extract_user_role(jwt);
 
-    printf("user_id: %s, user_role:%s\n", user_id, user_role);
+    // printf("user_id: %s, user_role:%s\n", user_id, user_role);
 
     char *films = select_all_films();
 
@@ -259,12 +259,41 @@ bool handle_get_film_info_request(request_t *req, int client_socket)
 
 bool handle_get_loan_expire_request(request_t *req, int client_socket)
 {
-    printf("Controllo se l'utente è un NEGOZIANTE...\n");
-    printf("GET /loan/expired request ricevuta...\n");
-    // Aggiungi qui il codice per gestire la richiesta GET
+    printf("GET /loan/expire request ricevuta...\n");
     print_request(req);
 
-    // liberare la memoria della request (free_request(req))
+    response_t *res = init_response();
+
+    // TODO: CONTROLLA CHE SIA USER
+    char *expired_loans = select_all_expired_loans();
+
+    if (expired_loans == NULL)
+    {
+        strcpy(res->status_code, "500");
+        strcpy(res->phrase, "Server Error");
+        strcpy(res->payload, " ");
+    }
+    else if (strlen(expired_loans) == 0)
+    {
+        // Nessun film trovato
+        strcpy(res->status_code, "404");
+        strcpy(res->phrase, "Not Found");
+        strcpy(res->payload, "Nessun film disponibile.");
+    }
+    else
+    {
+        // Film trovati con successo
+        strcpy(res->status_code, "200");
+        strcpy(res->phrase, "Ok");
+        strcpy(res->payload, expired_loans);
+    }
+
+    send_response(res, client_socket);
+
+    free_request(req);
+    free_response(res);
+    free(expired_loans); // Libera la memoria allocata per la stringa dei film
+
     return true;
 }
 
@@ -279,14 +308,15 @@ bool handle_get_message_request(request_t *req, int client_socket)
     return true;
 }
 
-bool handle_get_loan_request(request_t *req, int client_socket){
+bool handle_get_loan_request(request_t *req, int client_socket)
+{
     printf("GET /loan request ricevuta...\n");
     print_request(req);
 
     response_t *res = init_response();
 
-    //TODO: CONTROLLA CHE SIA USER
-    char *loans = select_active_loans_by_id("1"); //TODO: USERID VA RECUPERATO DAL JWT
+    // TODO: CONTROLLA CHE SIA USER
+    char *loans = select_active_loans_by_id("1"); // TODO: USERID VA RECUPERATO DAL JWT
 
     if (loans == NULL)
     {

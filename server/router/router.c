@@ -14,7 +14,7 @@ void route_get_request(request_t *req, int client_socket)
     {
         handle_get_film_info_request(req, client_socket);
     }
-    else if (strcmp(req->path, "/loan/expired") == 0)
+    else if (strcmp(req->path, "/loan/expire") == 0)
     {
         handle_get_loan_expire_request(req, client_socket);
     }

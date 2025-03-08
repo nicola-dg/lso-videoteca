@@ -49,6 +49,7 @@ bool select_film_id_by_title(char *title, char *film_id);
 
 char *select_all_films();
 char *select_active_loans_by_id(char *user_id);
+char *select_all_expired_loans();
 
 // Funzione di esecuzione di query preparate
 bool execute_prepared_statement(const char *stmt_name, int nParams, const char **paramValues);

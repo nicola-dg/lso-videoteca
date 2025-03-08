@@ -30,7 +30,7 @@ public class MovieController {
         this.socket = socket;
         this.responseService = responseService;
     }
-    
+
     @GetMapping("/home")
     public String getAllMovies(Model model, HttpSession session) {
         String jwt = (String) session.getAttribute("jwt");
@@ -135,7 +135,6 @@ public class MovieController {
 
     @PostMapping("/loan/film/return")
     public String returnFilmLoan(HttpSession session, @RequestParam String id) {
-        System.out.println("loan film con PUT attivata");
         String jwt = (String) session.getAttribute("jwt");
         FilmDTO film = new FilmDTO();
         film.setId(id);
@@ -146,4 +145,21 @@ public class MovieController {
         return "user-profile-test";
     }
 
+    @GetMapping("/loan/expire")
+    public String returnFilmLoan(HttpSession session) {
+        String jwt = (String) session.getAttribute("jwt");
+        Response res = requestService
+                .sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/loan/expire")
+                        .setHeader(new Header("Authorization", "Bearer " + jwt)));
+
+        try {
+            List<LoanDTO> loans = responseService.parseLoans(res.getPayload());
+            loans.forEach(System.out::println);
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return "loan-expire";
+    }
+    
 }

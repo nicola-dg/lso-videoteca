@@ -3,7 +3,7 @@ package com.lso.client.DTO;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class LoanDTO {
-
+    
     @JsonProperty("id")
     private String id;
 
@@ -25,86 +25,99 @@ public class LoanDTO {
     @JsonProperty("film_title")
     private String filmTitle;
 
+    @JsonProperty("username")
+    private String username;
+
+    
     // Costruttore vuoto
     public LoanDTO() {
     }
-
+    
     public String getFilmTitle() {
         return this.filmTitle;
     }
-
+    
     public void setFilmTitle(String filmTitle) {
         this.filmTitle = filmTitle;
     }
-
+    
     // Getter e Setter
     public String getId() {
         return id;
     }
-
+    
     public void setId(String id) {
         this.id = id;
     }
-
+    
     public String getFilmId() {
         return filmId;
     }
-
+    
     public void setFilmId(String filmId) {
         this.filmId = filmId;
     }
-
+    
     public String getUserId() {
         return userId;
     }
-
+    
     public void setUserId(String userId) {
         this.userId = userId;
     }
-
+    
     public String getCheckoutDate() {
         return checkoutDate;
     }
-
+    
     public void setCheckoutDate(String checkoutDate) {
         this.checkoutDate = checkoutDate;
     }
-
+    
     public String getDueDate() {
         return dueDate;
     }
-
+    
     public void setDueDate(String dueDate) {
         this.dueDate = dueDate;
     }
-
+    
     public String getReturnDate() {
         return returnDate;
     }
-
+    
     public void setReturnDate(String returnDate) {
         this.returnDate = returnDate;
+    }
+    
+    public String getUsername() {
+        return this.username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     // Metodo toString per debug e logging
     @Override
     public String toString() {
         return "LoanDTO{" +
-                "id='" + id + '\'' +
-                ", filmId='" + filmId + '\'' +
-                ", userId='" + userId + '\'' +
-                ", checkoutDate='" + checkoutDate + '\'' +
-                ", dueDate='" + dueDate + '\'' +
-                ", returnDate='" + returnDate + '\'' +
-                ", filmTitle='" + filmTitle + '\'' +
-                '}';
+        "id='" + id + '\'' +
+        ", filmId='" + filmId + '\'' +
+        ", userId='" + userId + '\'' +
+        ", checkoutDate='" + checkoutDate + '\'' +
+        ", dueDate='" + dueDate + '\'' +
+        ", returnDate='" + returnDate + '\'' +
+        ", filmTitle='" + filmTitle + '\'' +
+        ", username='" + username + '\'' +
+        '}';
     }
-
+    
     // Metodo per convertire in JSON manualmente
     public String toJSON() {
         StringBuilder json = new StringBuilder("{");
         boolean first = true;
-
+        
         if (id != null) {
             json.append("\\\"id\\\":").append(escapeString(id));
             first = false;
@@ -142,6 +155,11 @@ public class LoanDTO {
             if (!first)
                 json.append(",");
             json.append("\\\"film_title\\\":").append(escapeString(filmTitle));
+        }
+        if (username != null) {
+            if (!first)
+                json.append(",");
+            json.append("\\\"username\\\":").append(escapeString(username));
         }
 
         json.append("}");
