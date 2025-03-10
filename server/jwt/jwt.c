@@ -140,4 +140,3 @@ char *jwt_extract_user_role(jwt_t *jwt)
 
     return user_role_copy; // Restituisce una copia del user_role
 }
-

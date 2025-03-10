@@ -60,11 +60,25 @@ char *extract_jwt_from_headers(request_t *req)
             // Se trovi l'header Authorization, estrai il valore (che è il JWT)
             char *auth_header = req->headers->headerCollection[i].value;
 
-            // Controlla se l'header contiene 'Bearer' e rimuovilo, lasciando solo il token
+            // Controlla se l'header contiene 'Bearer ' e rimuovilo, lasciando solo il token
             if (strncmp(auth_header, "Bearer ", 7) == 0)
             {
-                // Restituisci solo la parte del token dopo "Bearer "
-                return auth_header + 7;
+                // Calcola la lunghezza del token
+                size_t token_length = strlen(auth_header + 7);
+
+                // Alloca memoria per una copia del token
+                char *jwt_token = (char *)malloc(token_length + 1); // +1 per il terminatore null
+                if (!jwt_token)
+                {
+                    printf("Errore di allocazione memoria per il JWT.\n");
+                    return NULL;
+                }
+
+                // Copia il token nella memoria appena allocata
+                strncpy(jwt_token, auth_header + 7, token_length);
+                jwt_token[token_length] = '\0'; // Assicura la terminazione della stringa
+
+                return jwt_token; // Restituisci il token copiato
             }
         }
     }
@@ -74,9 +88,27 @@ char *extract_jwt_from_headers(request_t *req)
 
 bool isUser(request_t *req)
 {
-    jwt_t *jwt = decode_jwt(extract_jwt_from_headers(req));
+    char *jwt_token = extract_jwt_from_headers(req);
+    if (!jwt_token)
+    {
+        return false;
+    }
+
+    jwt_t *jwt = decode_jwt(jwt_token);
+    if (!jwt)
+    {
+        return false;
+    }
+
     char *user_role = jwt_extract_user_role(jwt);
+    if (!user_role)
+    {
+        jwt_free(jwt);
+        return false;
+    }
+
     bool result = (strcmp(user_role, "USER") == 0);
+
     jwt_free(jwt);
     free(user_role);
     return result;
@@ -84,9 +116,29 @@ bool isUser(request_t *req)
 
 bool isNegoziante(request_t *req)
 {
-    jwt_t *jwt = decode_jwt(extract_jwt_from_headers(req));
+    char *jwt_token = extract_jwt_from_headers(req);
+    if (!jwt_token)
+    {
+        return false; // Nessun token, quindi l'utente non è negoziante
+    }
+
+    jwt_t *jwt = decode_jwt(jwt_token);
+    if (!jwt)
+    {
+        return false; // JWT non valido o decodifica fallita
+    }
+
     char *user_role = jwt_extract_user_role(jwt);
+    if (!user_role)
+    {
+        jwt_free(jwt);
+        return false; // Ruolo non trovato, quindi non è negoziante
+    }
+
+    printf("user role :%s\n", user_role);
+
     bool result = (strcmp(user_role, "NEGOZIANTE") == 0);
+
     jwt_free(jwt);
     free(user_role);
     return result;

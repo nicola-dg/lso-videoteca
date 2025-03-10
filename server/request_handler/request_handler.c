@@ -193,7 +193,7 @@ bool handle_get_user_request(request_t *req, int client_socket)
 {
     response_t *res = init_response();
     user_t *user = extract_user_from_json(req->payload);
-    select_user_id_by_username(user->username, user->id);
+    select_user_info_by_username(user->username, user->id, user->role);
 
     if (user->username && user->password && user->id && user->role)
     {
@@ -225,7 +225,7 @@ bool handle_get_user_request(request_t *req, int client_socket)
 bool handle_get_film_request(request_t *req, int client_socket)
 {
     printf("GET /film request ricevuta...\n");
-    print_request(req);
+    // print_request(req);
 
     response_t *res = init_response();
 
@@ -235,6 +235,16 @@ bool handle_get_film_request(request_t *req, int client_socket)
     // const char *user_role = jwt_extract_user_role(jwt);
 
     // printf("user_id: %s, user_role:%s\n", user_id, user_role);
+
+    if (isNegoziante(req))
+    {
+        printf("Richiesta da negoziante\n");
+    }
+
+    if (isUser(req))
+    {
+        printf("Richiesta da parte di user\n");
+    }
 
     char *films = select_all_films();
 

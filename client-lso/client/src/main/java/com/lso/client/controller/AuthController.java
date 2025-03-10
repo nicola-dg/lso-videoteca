@@ -19,7 +19,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-
 @Controller
 public class AuthController {
     private RequestService requestService;
@@ -42,7 +41,6 @@ public class AuthController {
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername(form.getUsername());
         userDTO.setPassword(form.getPassword());
-        userDTO.setRole("USER");
 
         Response res = requestService.sendRequest(requestService.createRequest().setMethod(Method.GET)
                 .setPath("/user").setPayload(userDTO.toJSON()));
@@ -64,7 +62,6 @@ public class AuthController {
         return "registration";
     }
 
-    
     @PostMapping("/register")
     public String register(@Valid @ModelAttribute RegistrationForm form, BindingResult result, Model model,
             HttpSession session) {
@@ -77,7 +74,6 @@ public class AuthController {
         userDTO.setUsername(form.getUsername());
         userDTO.setEmail(form.getEmail());
         userDTO.setPassword(form.getPassword());
-        userDTO.setRole("USER");
 
         Response res = requestService.sendRequest(
                 requestService.createRequest().setMethod(Method.POST).setPath("/user").setPayload(userDTO.toJSON()));

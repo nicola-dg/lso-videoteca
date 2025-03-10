@@ -11,6 +11,7 @@ void database_close_connection();
 
 // Funzione per creare le tabelle nel database
 void create_tables();
+void create_extensions();
 
 // Funzione per resettare (svuotare) le tabelle
 void reset_tables();
@@ -45,7 +46,7 @@ bool delete_cart(int cart_id);
 void select_all_users();
 void select_user_by_id(int user_id);
 bool select_user_by_username_and_password(const char *username, const char *password);
-bool select_user_id_by_username(char *username, char *user_id);
+bool select_user_info_by_username(char *username, char *user_id, char *user_role);
 bool select_film_id_by_title(char *title, char *film_id);
 
 char *select_all_films();

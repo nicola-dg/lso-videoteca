@@ -10,6 +10,7 @@ void database_start(bool reset)
         reset_tables();
     }
     create_tables();
+    create_extensions();
     prepare_insert_statements();
     prepare_update_statements();
     prepare_delete_statements();
@@ -68,7 +69,7 @@ void create_tables()
         "email TEXT, "
         "name TEXT, "
         "surname TEXT, "
-        "role TEXT, "
+        "role TEXT DEFAULT 'USER', "
         "max_loans INTEGER DEFAULT 3);",
 
         "CREATE TABLE IF NOT EXISTS films ("
@@ -117,6 +118,20 @@ void create_tables()
 
         PQclear(res);
     }
+}
+
+void create_extensions()
+{
+    // Eseguire il comando per abilitare l'estensione pgcrypto
+    PGresult *res = PQexec(conn, "CREATE EXTENSION IF NOT EXISTS pgcrypto;");
+
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Errore durante attivazione estensione pgcrypto: %s\n", PQerrorMessage(conn));
+    }
+
+    // Pulizia e chiusura connessione
+    PQclear(res);
 }
 
 bool execute_prepared_statement(const char *stmt_name, int nParams, const char **paramValues)
@@ -180,11 +195,11 @@ void prepare_insert_statements()
 
     // Statement per inserire un messaggio
     res = PQprepare(conn, "insert_message",
-        "INSERT INTO messages (user_id, text) VALUES ($1, $2);",
-        2, NULL);
+                    "INSERT INTO messages (user_id, text) VALUES ($1, $2);",
+                    2, NULL);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
-    fprintf(stderr, "Errore preparazione query insert_messages %s\n", PQerrorMessage(conn));
+        fprintf(stderr, "Errore preparazione query insert_messages %s\n", PQerrorMessage(conn));
     }
     PQclear(res);
 }
@@ -911,8 +926,8 @@ void prepare_select_statements()
     PQclear(res);
 
     // Query preparata per ottenere user_id a partire dallo username
-    res = PQprepare(conn, "select_user_id_by_username",
-                    "SELECT id FROM users WHERE username = $1 ;",
+    res = PQprepare(conn, "select_user_info_by_username",
+                    "SELECT id, role FROM users WHERE username = $1 ;",
                     1, NULL);
     PQclear(res);
 
@@ -1036,12 +1051,12 @@ bool select_user_by_username_and_password(const char *username, const char *pass
     return true;
 }
 
-bool select_user_id_by_username(char *username, char *user_id)
+bool select_user_info_by_username(char *username, char *user_id, char *user_role)
 {
     const char *paramValues[1] = {username}; // Passiamo solo il parametro username
 
     // Esegui la query preparata per ottenere l'ID utente in base allo username
-    PGresult *res = PQexecPrepared(conn, "select_user_id_by_username", 1, paramValues, NULL, NULL, 0);
+    PGresult *res = PQexecPrepared(conn, "select_user_info_by_username", 1, paramValues, NULL, NULL, 0);
 
     if (PQresultStatus(res) != PGRES_TUPLES_OK)
     {
@@ -1062,7 +1077,7 @@ bool select_user_id_by_username(char *username, char *user_id)
     {
         // Se l'utente è trovato, copiamo l'ID nella variabile user_id
         strcpy(user_id, PQgetvalue(res, 0, 0)); // Assume che l'ID sia nel primo campo
-        printf("ID utente: %s\n", user_id);
+        strcpy(user_role, PQgetvalue(res, 0, 1));
     }
 
     PQclear(res);

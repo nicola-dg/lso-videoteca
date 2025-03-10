@@ -64,9 +64,6 @@ bool extract_headers(json_t *root, request_t *req)
                         strncpy(new_header.key, key, MAX_KEY_LEN);
                         strncpy(new_header.value, json_string_value(value), MAX_VALUE_LEN);
 
-                        // Print the header for debugging
-                        printf("Header: %s -> %s\n", new_header.key, new_header.value);
-
                         // Aggiungi l'header all'array di header di 'req'
                         for (int i = 0; i < MAX_HEADERS; i++)
                         {
@@ -200,7 +197,6 @@ user_t *extract_user_from_json(char *json_payload)
     return user;
 }
 
-
 /*--------------------------------------------------*/
 /*-------------------FILM DECODING------------------*/
 /*--------------------------------------------------*/
@@ -248,7 +244,6 @@ film_t *extract_film_from_json(char *json_payload)
 
     return film;
 }
-
 
 /*--------------------------------------------------*/
 /*-------------------MESSAGE DECODING------------------*/
