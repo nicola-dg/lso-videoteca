@@ -175,14 +175,98 @@ void prepare_insert_statements()
 
 bool insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role)
 {
+    PGresult *res;
     const char *paramValues[6] = {username, password, email, name, surname, role};
-    return execute_prepared_statement("insert_user", 6, paramValues);
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Execute insert query
+    if (!execute_prepared_statement("insert_user", 6, paramValues))
+    {
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+
+    // Commit transaction
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+    return true;
 }
 
 bool insert_film(const char *title, const char *genre, const char *price)
 {
+    PGresult *res;
     const char *paramValues[3] = {title, genre, price};
-    return execute_prepared_statement("insert_film", 3, paramValues);
+
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    if (!execute_prepared_statement("insert_film", 3, paramValues))
+    {
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+    return true;
+}
+
+bool insert_cart(char *film_id, char *user_id)
+{
+    PGresult *res;
+    const char *paramValues[2] = {film_id, user_id};
+
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    if (!execute_prepared_statement("insert_cart", 2, paramValues))
+    {
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+    return true;
 }
 
 bool insert_loan(char *film_id, char *user_id)
@@ -308,12 +392,6 @@ bool insert_loan(char *film_id, char *user_id)
     return true;
 }
 
-bool insert_cart(char *film_id, char *user_id)
-{
-    const char *paramValues[2] = {film_id, user_id};
-    return execute_prepared_statement("insert_cart", 2, paramValues);
-}
-
 void prepare_update_statements()
 {
     PGresult *res;
@@ -363,8 +441,57 @@ bool update_film(int available_copies, int film_id)
 
 bool update_film_return(char *film_id, char *user_id)
 {
+    PGresult *res;
     const char *paramValues[2] = {film_id, user_id};
-    return execute_prepared_statement("update_film_return", 2, paramValues);
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Update the return_date in the loans table
+    res = PQexecParams(conn, "UPDATE loans SET return_date = NOW() WHERE film_id = $1 AND user_id = $2",
+                       2, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error updating return date in loans table: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Update the available_copies and loan_count in the films table
+    const char *update_film_query =
+        "UPDATE films SET available_copies = available_copies + 1, loan_count = loan_count - 1 "
+        "WHERE id = $1";
+    res = PQexecParams(conn, update_film_query, 1, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error updating available copies and loan count in films table: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("Film return successfully processed for film ID %s and user ID %s\n", film_id, user_id);
+    return true;
 }
 
 bool update_loan(const char *return_date, int loan_id)
@@ -801,6 +928,15 @@ bool can_user_loan(char *user_id)
         fprintf(stderr, "Error executing check_loans_query: %s\n", PQerrorMessage(conn));
         PQclear(res);
         return false;
+    }
+
+    // Check if any rows were returned
+    int numRows = PQntuples(res);
+    if (numRows == 0)
+    {
+        // If no rows are returned, the user has no active loans
+        PQclear(res);
+        return true;
     }
 
     // Get active_loans and max_loans from the result

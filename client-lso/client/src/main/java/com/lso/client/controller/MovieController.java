@@ -80,7 +80,7 @@ public class MovieController {
     public String showAddFilmToCart() {
         return "add-to-cart";
     }
-    
+
     @PostMapping("/cart/film")
     public String addFilmToCart(HttpSession session, @RequestParam String title) {
         String jwt = (String) session.getAttribute("jwt");
@@ -94,7 +94,7 @@ public class MovieController {
 
         return "user-profile-test";
     }
-
+    
     @GetMapping("/loan") // L'UTENTE VEDE I NOLEGGI ATTIVI
     public String getLoans(Model model, HttpSession session) {
         String jwt = (String) session.getAttribute("jwt");
