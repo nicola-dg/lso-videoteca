@@ -429,14 +429,166 @@ void prepare_update_statements()
 
 bool update_user(const char *password, const char *email, const char *name, const char *surname, int max_loans, const char *username)
 {
+    PGresult *res;
     const char *paramValues[6] = {password, email, name, surname, (const char *)&max_loans, username};
-    return execute_prepared_statement("update_user", 6, paramValues);
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Update user details
+    res = PQexecParams(conn, "UPDATE users SET password = $1, email = $2, name = $3, surname = $4, max_loans = $5 WHERE username = $6",
+                       6, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error updating user: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("User updated successfully for username %s\n", username);
+    return true;
 }
 
 bool update_film(int available_copies, int film_id)
 {
+    PGresult *res;
     const char *paramValues[2] = {(const char *)&available_copies, (const char *)&film_id};
-    return execute_prepared_statement("update_film", 2, paramValues);
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Update film details
+    res = PQexecParams(conn, "UPDATE films SET available_copies = $1 WHERE id = $2",
+                       2, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error updating film: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("Film updated successfully for film ID %d\n", film_id);
+    return true;
+}
+
+bool update_loan(const char *return_date, int loan_id)
+{
+    PGresult *res;
+    const char *paramValues[2] = {return_date, (const char *)&loan_id};
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Update loan details
+    res = PQexecParams(conn, "UPDATE loans SET return_date = $1 WHERE id = $2",
+                       2, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error updating loan: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("Loan updated successfully for loan ID %d\n", loan_id);
+    return true;
+}
+
+bool update_cart(const char *checkout_date, int cart_id)
+{
+    PGresult *res;
+    const char *paramValues[2] = {checkout_date, (const char *)&cart_id};
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Update cart details
+    res = PQexecParams(conn, "UPDATE carts SET checkout_date = $1 WHERE id = $2",
+                       2, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error updating cart: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("Cart updated successfully for cart ID %d\n", cart_id);
+    return true;
 }
 
 bool update_film_return(char *film_id, char *user_id)
@@ -494,18 +646,6 @@ bool update_film_return(char *film_id, char *user_id)
     return true;
 }
 
-bool update_loan(const char *return_date, int loan_id)
-{
-    const char *paramValues[2] = {return_date, (const char *)&loan_id};
-    return execute_prepared_statement("update_loan", 2, paramValues);
-}
-
-bool update_cart(const char *checkout_date, int cart_id)
-{
-    const char *paramValues[2] = {checkout_date, (const char *)&cart_id};
-    return execute_prepared_statement("update_cart", 2, paramValues);
-}
-
 void prepare_delete_statements()
 {
     PGresult *res;
@@ -537,27 +677,164 @@ void prepare_delete_statements()
 
 bool delete_user(int user_id)
 {
+    PGresult *res;
     const char *paramValues[1] = {(const char *)&user_id};
-    return execute_prepared_statement("delete_user", 1, paramValues);
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Delete user
+    res = PQexecParams(conn, "DELETE FROM users WHERE id = $1", 1, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error deleting user: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("User deleted successfully for user ID %d\n", user_id);
+    return true;
 }
 
 bool delete_film(int film_id)
 {
+    PGresult *res;
     const char *paramValues[1] = {(const char *)&film_id};
-    return execute_prepared_statement("delete_film", 1, paramValues);
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Delete film
+    res = PQexecParams(conn, "DELETE FROM films WHERE id = $1", 1, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error deleting film: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("Film deleted successfully for film ID %d\n", film_id);
+    return true;
 }
 
 bool delete_loan(int loan_id)
 {
+    PGresult *res;
     const char *paramValues[1] = {(const char *)&loan_id};
-    return execute_prepared_statement("delete_loan", 1, paramValues);
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Delete loan
+    res = PQexecParams(conn, "DELETE FROM loans WHERE id = $1", 1, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error deleting loan: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("Loan deleted successfully for loan ID %d\n", loan_id);
+    return true;
 }
 
 bool delete_cart(int cart_id)
 {
+    PGresult *res;
     const char *paramValues[1] = {(const char *)&cart_id};
-    return execute_prepared_statement("delete_cart", 1, paramValues);
+
+    // Start transaction
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    // Delete cart
+    res = PQexecParams(conn, "DELETE FROM carts WHERE id = $1", 1, NULL, paramValues, NULL, NULL, 0);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error deleting cart: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+    PQclear(res);
+
+    // Commit the transaction if everything is successful
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    printf("Cart deleted successfully for cart ID %d\n", cart_id);
+    return true;
 }
+
 
 void prepare_select_statements()
 {
