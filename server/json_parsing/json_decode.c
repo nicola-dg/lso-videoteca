@@ -148,6 +148,7 @@ request_t *decode(char *json_str)
 
     return req;
 }
+
 /*--------------------------------------------------*/
 /*-------------------USER DECODING------------------*/
 /*--------------------------------------------------*/
@@ -203,6 +204,7 @@ user_t *extract_user_from_json(char *json_payload)
 /*--------------------------------------------------*/
 /*-------------------FILM DECODING------------------*/
 /*--------------------------------------------------*/
+
 film_t *extract_film_from_json(char *json_payload)
 {
     if (!json_payload)
@@ -245,4 +247,44 @@ film_t *extract_film_from_json(char *json_payload)
     json_decref(root); // Libera la memoria allocata da Jansson
 
     return film;
+}
+
+
+/*--------------------------------------------------*/
+/*-------------------MESSAGE DECODING------------------*/
+/*--------------------------------------------------*/
+
+message_t *extract_message_from_json(char *json_payload)
+{
+    if (!json_payload)
+        return NULL; // Controllo parametri nulli
+
+    json_t *root;
+    json_error_t error;
+
+    root = json_loads(json_payload, 0, &error);
+    if (!root)
+    {
+        fprintf(stderr, "Errore nel parsing JSON: %s\n", error.text);
+        return NULL;
+    }
+
+    message_t *message = (message_t *)malloc(sizeof(message_t));
+
+    const char *value;
+    if ((value = json_string_value(json_object_get(root, "id"))))
+        snprintf(message->id, sizeof(message->id), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "user_id"))))
+        snprintf(message->user_id, sizeof(message->user_id), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "text"))))
+        snprintf(message->text, sizeof(message->text), "%s", value);
+
+    if ((value = json_string_value(json_object_get(root, "checkout_date"))))
+        snprintf(message->checkout_date, sizeof(message->checkout_date), "%s", value);
+
+    json_decref(root); // Libera la memoria allocata da Jansson
+
+    return message;
 }

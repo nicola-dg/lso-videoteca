@@ -6,6 +6,7 @@
 #include "../types/request_type.h"
 #include "../types/user_type.h"
 #include "../types/film_type.h"
+#include "../types/message_type.h"
 #include "../request_response/request.h"
 
 // Funzioni per l'estrazione dei campi JSON dalla richiesta
@@ -18,5 +19,6 @@ bool extract_params(json_t *root, request_t *req);
 // Funzione per decodificare la stringa JSON in una request_t
 request_t *decode(char *json_str);
 
-user_t* extract_user_from_json(char *root);
+user_t *extract_user_from_json(char *root);
 film_t *extract_film_from_json(char *json_payload);
+message_t *extract_message_from_json(char *json_payload);

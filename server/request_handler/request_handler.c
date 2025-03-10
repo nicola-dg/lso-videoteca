@@ -73,13 +73,36 @@ bool handle_post_film_request(request_t *req, int client_socket)
 
 bool handle_post_message_request(request_t *req, int client_socket)
 {
-    printf("Controllo se l'utente è un NEGOZIANTE...\n");
-    printf("Controllo se il messaggio è formattato correttamente...\n");
-    printf("Aggiungo nuovo messaggio...\n");
-    // Aggiungi qui il codice per gestire la richiesta POST
+    printf("POST /message request ricevuta...\n");
     print_request(req);
+    response_t *res = init_response();
+    printf("Controllo se l'utente è un NEGOZIANTE...\n");
+    // if (isUser(req)) // TODO: RIMUOVERE COMMENTI
+    // {
+    message_t *message = extract_message_from_json(req->payload);
 
-    // liberare la memoria della request (free_request(req))
+    if (insert_message("1", message->text)) // TODO: USER ID VA ESTRATTO DAL JWT
+    {
+        free(message);
+        strcpy(res->status_code, "200");
+        strcpy(res->phrase, "ok");
+    }
+    else
+    {
+        free(message);
+        strcpy(res->status_code, "400");
+        strcpy(res->phrase, "Can't add to cart");
+    }
+    //}
+    // else
+    // {
+    //     strcpy(res->status_code, "402");
+    //     strcpy(res->phrase, "Don't have permissions");
+    // }
+
+    send_response(res, client_socket);
+    free_request(req);
+    free_response(res);
     return true;
 }
 

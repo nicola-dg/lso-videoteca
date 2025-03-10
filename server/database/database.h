@@ -26,6 +26,7 @@ bool insert_user(const char *username, const char *password, const char *email, 
 bool insert_film(const char *title, const char *genre, const char *price);
 bool insert_loan(char *film_id, char *user_id);
 bool insert_cart(char *movie_id, char *user_id);
+bool insert_message(char *user_id, char *text);
 
 // Funzioni per l'aggiornamento dei dati
 bool update_user(const char *password, const char *email, const char *name, const char *surname, int max_loans, const char *username);

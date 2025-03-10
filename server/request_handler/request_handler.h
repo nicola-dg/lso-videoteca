@@ -1,6 +1,7 @@
 #pragma once
 #include "../types/request_type.h"
 #include "../types/user_type.h"
+#include "../types/message_type.h"
 #include "../request_response/request_print.h"
 #include "../request_response/response.h"
 #include "../request_response/request.h"

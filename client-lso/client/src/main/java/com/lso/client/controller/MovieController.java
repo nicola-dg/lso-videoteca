@@ -2,6 +2,7 @@ package com.lso.client.controller;
 
 import com.lso.client.DTO.FilmDTO;
 import com.lso.client.DTO.LoanDTO;
+import com.lso.client.DTO.MessageDTO;
 import com.lso.client.service.RequestService;
 import com.lso.client.service.ResponseService;
 import com.lso.client.service.ResponseService.Response;
@@ -94,7 +95,7 @@ public class MovieController {
 
         return "user-profile-test";
     }
-    
+
     @GetMapping("/loan") // L'UTENTE VEDE I NOLEGGI ATTIVI
     public String getLoans(Model model, HttpSession session) {
         String jwt = (String) session.getAttribute("jwt");
@@ -161,5 +162,26 @@ public class MovieController {
         }
         return "loan-expire";
     }
-    
+
+    /* FUNZIONI DA SPOSTARE IN MESSAGE CONTROLLER */
+    @GetMapping("/message")
+    public String showSendMessage() {
+        return "send-message";
+    }
+
+    @PostMapping("/message")
+    public String sendMessage(HttpSession session, @RequestParam String user_id, @RequestParam String text) {
+        String jwt = (String) session.getAttribute("jwt");
+        MessageDTO message = new MessageDTO();
+        message.setUserId(user_id);
+        message.setText(text);
+        Response res = requestService.sendRequest(requestService.createRequest()
+                .setMethod(Method.POST)
+                .setPath("/message")
+                .setPayload(message.toJSON())
+                .setHeader(new Header("Authorization", "Bearer " + jwt)));
+
+        return "user-profile-test";
+    }
+
 }

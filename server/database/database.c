@@ -88,6 +88,12 @@ void create_tables()
         "due_date TIMESTAMP DEFAULT NOW() + INTERVAL '14 days', "
         "return_date TIMESTAMP);",
 
+        "CREATE TABLE IF NOT EXISTS messages ("
+        "id SERIAL PRIMARY KEY, "
+        "user_id INTEGER REFERENCES users(id) ON DELETE CASCADE, "
+        "text TEXT, "
+        "checkout_date TIMESTAMP DEFAULT NOW());",
+
         "CREATE TABLE IF NOT EXISTS carts ("
         "id SERIAL PRIMARY KEY, "
         "film_id INTEGER REFERENCES films(id) ON DELETE CASCADE, "
@@ -169,6 +175,16 @@ void prepare_insert_statements()
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         fprintf(stderr, "Errore preparazione query insert_cart: %s\n", PQerrorMessage(conn));
+    }
+    PQclear(res);
+
+    // Statement per inserire un messaggio
+    res = PQprepare(conn, "insert_message",
+        "INSERT INTO messages (user_id, text) VALUES ($1, $2);",
+        2, NULL);
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+    fprintf(stderr, "Errore preparazione query insert_messages %s\n", PQerrorMessage(conn));
     }
     PQclear(res);
 }
@@ -253,6 +269,37 @@ bool insert_cart(char *film_id, char *user_id)
     PQclear(res);
 
     if (!execute_prepared_statement("insert_cart", 2, paramValues))
+    {
+        PQexec(conn, "ROLLBACK");
+        return false;
+    }
+
+    res = PQexec(conn, "COMMIT");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error committing transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+    return true;
+}
+
+bool insert_message(char *user_id, char *text)
+{
+    PGresult *res;
+    const char *paramValues[2] = {user_id, text};
+
+    res = PQexec(conn, "BEGIN");
+    if (PQresultStatus(res) != PGRES_COMMAND_OK)
+    {
+        fprintf(stderr, "Error starting transaction: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return false;
+    }
+    PQclear(res);
+
+    if (!execute_prepared_statement("insert_message", 2, paramValues))
     {
         PQexec(conn, "ROLLBACK");
         return false;
@@ -834,7 +881,6 @@ bool delete_cart(int cart_id)
     printf("Cart deleted successfully for cart ID %d\n", cart_id);
     return true;
 }
-
 
 void prepare_select_statements()
 {
