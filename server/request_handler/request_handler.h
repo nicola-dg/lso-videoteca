@@ -25,7 +25,6 @@ bool handle_get_loan_request(request_t *req, int client_socket);
 bool handle_get_loan_expire_request(request_t *req, int client_socket);
 
 /*---------------------- GET NON IMPLEMENTATE --------------------------*/
-bool handle_get_film_info_request(request_t *req, int client_socket); //??
 bool handle_get_message_request(request_t *req, int client_socket);
 /*------------------------------------------------------*/
 

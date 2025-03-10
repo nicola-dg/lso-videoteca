@@ -39,8 +39,16 @@ public class MovieController {
                 .sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/film")
                         .setHeader(new Header("Authorization", "Bearer " + jwt)));
         try {
-            List<FilmDTO> films = responseService.parseFilms(res.getPayload());
-            films.forEach(System.out::println);
+            if (res.getStatusCode().equals("200")) {
+                List<FilmDTO> films = responseService.parseFilms(res.getPayload());
+                films.forEach(System.out::println);
+            } else if (res.getStatusCode().equals("404")) {
+                System.out.println(res.getPayload());
+            } else if (res.getStatusCode().equals("500")) {
+                System.out.println(res.getPayload());
+            } else if (res.getStatusCode().equals("403")) {
+                System.out.println(res.getPayload());
+            }
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -145,7 +153,7 @@ public class MovieController {
 
         return "user-profile-test";
     }
-
+    
     @GetMapping("/loan/expire")
     public String returnFilmLoan(HttpSession session) {
         String jwt = (String) session.getAttribute("jwt");

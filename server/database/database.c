@@ -165,8 +165,8 @@ void prepare_insert_statements()
 
     // Statement per inserire un utente
     res = PQprepare(conn, "insert_user",
-                    "INSERT INTO users (username, password, email, name, surname, role) VALUES ($1, crypt($2, gen_salt('bf'::text)), $3, $4, $5, $6);",
-                    6, NULL);
+                    "INSERT INTO users (username, password, email, name, surname) VALUES ($1, crypt($2, gen_salt('bf'::text)), $3, $4, $5);",
+                    5, NULL);
     if (PQresultStatus(res) != PGRES_COMMAND_OK)
     {
         fprintf(stderr, "Errore preparazione query insert_user: %s\n", PQerrorMessage(conn));
@@ -204,10 +204,10 @@ void prepare_insert_statements()
     PQclear(res);
 }
 
-bool insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname, const char *role)
+bool insert_user(const char *username, const char *password, const char *email, const char *name, const char *surname)
 {
     PGresult *res;
-    const char *paramValues[6] = {username, password, email, name, surname, role};
+    const char *paramValues[5] = {username, password, email, name, surname};
 
     // Start transaction
     res = PQexec(conn, "BEGIN");
@@ -220,7 +220,7 @@ bool insert_user(const char *username, const char *password, const char *email, 
     PQclear(res);
 
     // Execute insert query
-    if (!execute_prepared_statement("insert_user", 6, paramValues))
+    if (!execute_prepared_statement("insert_user", 5, paramValues))
     {
         PQexec(conn, "ROLLBACK");
         return false;

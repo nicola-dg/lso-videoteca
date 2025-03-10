@@ -100,6 +100,12 @@ bool isUser(request_t *req)
         return false;
     }
 
+    // if (is_jwt_expired(jwt))
+    // {
+    //     jwt_free(jwt);
+    //     return false; // Token is expired
+    // }
+
     char *user_role = jwt_extract_user_role(jwt);
     if (!user_role)
     {
@@ -128,14 +134,18 @@ bool isNegoziante(request_t *req)
         return false; // JWT non valido o decodifica fallita
     }
 
+    if (is_jwt_expired(jwt))
+    {
+        jwt_free(jwt);
+        return false; // Token is expired
+    }
+
     char *user_role = jwt_extract_user_role(jwt);
     if (!user_role)
     {
         jwt_free(jwt);
         return false; // Ruolo non trovato, quindi non è negoziante
     }
-
-    printf("user role :%s\n", user_role);
 
     bool result = (strcmp(user_role, "NEGOZIANTE") == 0);
 

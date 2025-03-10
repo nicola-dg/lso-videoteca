@@ -74,7 +74,7 @@ public class AuthController {
         userDTO.setUsername(form.getUsername());
         userDTO.setEmail(form.getEmail());
         userDTO.setPassword(form.getPassword());
-
+        
         Response res = requestService.sendRequest(
                 requestService.createRequest().setMethod(Method.POST).setPath("/user").setPayload(userDTO.toJSON()));
         if (res.getStatusCode().equals("200")) {

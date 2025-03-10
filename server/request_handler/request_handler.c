@@ -7,14 +7,15 @@
 bool handle_post_user_request(request_t *req, int client_socket)
 {
     response_t *res = init_response();
-
     user_t *user = extract_user_from_json(req->payload);
+    bool ret = false;
 
-    if (is_valid_user(user) && insert_user(user->username, user->password, user->email, user->name, user->surname, user->role))
+    if (is_valid_user(user) && insert_user(user->username, user->password, user->email, user->name, user->surname))
     {
         strcpy(res->status_code, "200");
         strcpy(res->phrase, "Ok");
         strcpy(res->payload, req->payload);
+        ret = true;
     }
     else
     {
@@ -26,162 +27,158 @@ bool handle_post_user_request(request_t *req, int client_socket)
     send_response(res, client_socket);
     free_request(req);
     free_response(res);
+    free(user);
 
-    return true;
+    return ret;
 }
 
 bool handle_post_film_request(request_t *req, int client_socket)
 {
+    printf("POST /film RICEVUTA\n ");
     response_t *res = init_response();
-    // jwt_t *jwt = decode_jwt(extract_jwt_from_headers(req));
-    // if (is_jwt_expired(jwt))
-    // {
-    //     strcpy(res->status_code, "401");
-    //     strcpy(res->phrase, "Jwt Expired");
-    // }
-    // else
-    // {
-    // char *role = jwt_extract_user_role(jwt);
-    // if (strcmp(role, "USER") == 0)
-    // { // DOVRA' CONTROLLARE CHE SIA NEGOZIANTE METTO USER PER TESTARE
-    film_t *film = extract_film_from_json(req->payload);
-    if (insert_film(film->title, film->genre, film->price))
+    bool ret = false;
+    print_request(req);
+
+    if (isUser(req)) // TODO: DEVE CONTROLLARE CHE SIA NEGOZIANTE METTO USER PER TEST
     {
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "ok");
-        strcpy(res->payload, req->payload);
+        printf("here");
+        film_t *film = extract_film_from_json(req->payload);
+        if (insert_film(film->title, film->genre, film->price))
+        {
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "ok");
+            strcpy(res->payload, req->payload);
+            ret = true;
+        }
+        else
+        {
+            strcpy(res->status_code, "500");
+            strcpy(res->phrase, "Server Error");
+        }
+
+        free(film);
     }
     else
     {
-        strcpy(res->status_code, "500");
-        strcpy(res->phrase, "Server Error");
+        strcpy(res->status_code, "403");
+        strcpy(res->phrase, "Forbidden");
+        strcpy(res->payload, "Non hai i permessi necessari per accedere a questa risorsa.");
     }
-    //}
-    // else
-    //{
-    //    strcpy(res->status_code, "400");
-    //    strcpy(res->phrase, "Permission Denied");
-    //}
-    //}
 
     send_response(res, client_socket);
     free_request(req);
     free_response(res);
-    // jwt_free(jwt);
-    return true;
+
+    return ret;
 }
 
 bool handle_post_message_request(request_t *req, int client_socket)
 {
-    printf("POST /message request ricevuta...\n");
-    print_request(req);
-    response_t *res = init_response();
-    printf("Controllo se l'utente è un NEGOZIANTE...\n");
-    // if (isUser(req)) // TODO: RIMUOVERE COMMENTI
-    // {
-    message_t *message = extract_message_from_json(req->payload);
 
-    if (insert_message("1", message->text)) // TODO: USER ID VA ESTRATTO DAL JWT
+    response_t *res = init_response();
+    bool ret = false;
+
+    if (isUser(req))
     {
+        message_t *message = extract_message_from_json(req->payload);
+        if (insert_message("1", message->text)) // TODO: USER ID VA ESTRATTO DA MESSAGE -> ID
+        {
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "ok");
+            ret = true;
+        }
+        else
+        {
+            strcpy(res->status_code, "400");
+            strcpy(res->phrase, "Can't add to cart");
+        }
         free(message);
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "ok");
     }
     else
     {
-        free(message);
-        strcpy(res->status_code, "400");
-        strcpy(res->phrase, "Can't add to cart");
+        strcpy(res->status_code, "402");
+        strcpy(res->phrase, "Don't have permissions");
     }
-    //}
-    // else
-    // {
-    //     strcpy(res->status_code, "402");
-    //     strcpy(res->phrase, "Don't have permissions");
-    // }
 
     send_response(res, client_socket);
     free_request(req);
     free_response(res);
-    return true;
+    return ret;
 }
 
 bool handle_post_cart_film_request(request_t *req, int client_socket)
 {
-    printf("POST /cart/film request ricevuta...\n");
-    print_request(req);
+
     response_t *res = init_response();
-    printf("Controllo se l'utente è un USER...\n");
-    // if (isUser(req)) // TODO: RIMUOVERE COMMENTI
-    // {
-    film_t *film = extract_film_from_json(req->payload);
-    char *film_id = malloc(sizeof(char) * 100);
-    select_film_id_by_title(film->title, film_id);
-    if (!film_id)
+    bool ret = false;
+    if (isUser(req))
     {
-        return false;
-    }
-    if (insert_cart(film_id, "1")) // TODO: USER ID VA ESTRATTO DAL JWT
-    {
+        film_t *film = extract_film_from_json(req->payload);
+        char *film_id = malloc(sizeof(char) * 100);
+        select_film_id_by_title(film->title, film_id);
+        if (!film_id)
+        {
+            return false;
+        }
+        if (insert_cart(film_id, jwt_extract_user_id(decode_jwt(extract_jwt_from_headers(req)))))
+        {
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "ok");
+            ret = true;
+        }
+        else
+        {
+            strcpy(res->status_code, "400");
+            strcpy(res->phrase, "Can't add to cart");
+        }
         free(film);
         free(film_id);
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "ok");
     }
     else
     {
-        free(film);
-        free(film_id);
-        strcpy(res->status_code, "400");
-        strcpy(res->phrase, "Can't add to cart");
+        strcpy(res->status_code, "402");
+        strcpy(res->phrase, "Don't have permissions");
     }
-    //}
-    // else
-    // {
-    //     strcpy(res->status_code, "402");
-    //     strcpy(res->phrase, "Don't have permissions");
-    // }
 
     send_response(res, client_socket);
     free_request(req);
     free_response(res);
-    return true;
+    return ret;
 }
 
 bool handle_post_loan_film_request(request_t *req, int client_socket)
 {
-    printf("Controllo se l'utente è un USER...\n");
-    print_request(req);
+
     response_t *res = init_response();
-    printf("POST /loan/film request ricevuta...\n");
+    bool ret = false;
 
-    // if (isUser(req)) // TODO: RIMUOVERE COMMENTI
-    // {
-    film_t *film = extract_film_from_json(req->payload);
-
-    if (insert_loan(film->id, "1")) // TODO: USER ID VA ESTRATTO DAL JWT
+    if (isUser(req))
     {
+        film_t *film = extract_film_from_json(req->payload);
+
+        if (insert_loan(film->id, jwt_extract_user_id(decode_jwt(extract_jwt_from_headers(req)))))
+        {
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "ok");
+            ret = true;
+        }
+        else
+        {
+            strcpy(res->status_code, "400");
+            strcpy(res->phrase, "Can't add to cart");
+        }
         free(film);
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "ok");
     }
     else
     {
-        free(film);
-        strcpy(res->status_code, "400");
-        strcpy(res->phrase, "Can't add to cart");
+        strcpy(res->status_code, "402");
+        strcpy(res->phrase, "Don't have permissions");
     }
-    //}
-    // else
-    // {
-    //     strcpy(res->status_code, "402");
-    //     strcpy(res->phrase, "Don't have permissions");
-    // }
 
     send_response(res, client_socket);
     free_request(req);
     free_response(res);
-    return true;
+    return ret;
 }
 /*------------------------------------------------------------------*/
 
@@ -194,6 +191,7 @@ bool handle_get_user_request(request_t *req, int client_socket)
     response_t *res = init_response();
     user_t *user = extract_user_from_json(req->payload);
     select_user_info_by_username(user->username, user->id, user->role);
+    bool ret;
 
     if (user->username && user->password && user->id && user->role)
     {
@@ -204,6 +202,7 @@ bool handle_get_user_request(request_t *req, int client_socket)
             strcpy(res->status_code, "200");
             strcpy(res->phrase, "Ok");
             strcpy(res->payload, jwt_encode_str(jwt));
+            ret = true;
         }
 
         jwt_free(jwt);
@@ -219,116 +218,105 @@ bool handle_get_user_request(request_t *req, int client_socket)
     free_request(req);
     free_response(res);
 
-    return true;
+    return ret;
 }
 
 bool handle_get_film_request(request_t *req, int client_socket)
 {
-    printf("GET /film request ricevuta...\n");
-    // print_request(req);
 
     response_t *res = init_response();
-
-    // jwt_t *jwt = decode_jwt(extract_jwt_from_headers(req));
-
-    // const char *user_id = jwt_extract_user_id(jwt);
-    // const char *user_role = jwt_extract_user_role(jwt);
-
-    // printf("user_id: %s, user_role:%s\n", user_id, user_role);
-
-    if (isNegoziante(req))
-    {
-        printf("Richiesta da negoziante\n");
-    }
+    bool ret = false;
 
     if (isUser(req))
     {
-        printf("Richiesta da parte di user\n");
-    }
+        char *films = select_all_films();
 
-    char *films = select_all_films();
-
-    if (films == NULL)
-    {
-        // Errore del server nel recupero dei film
-        strcpy(res->status_code, "500");
-        strcpy(res->phrase, "Server Error");
-        strcpy(res->payload, " ");
-    }
-    else if (strlen(films) == 0)
-    {
-        // Nessun film trovato
-        strcpy(res->status_code, "404");
-        strcpy(res->phrase, "Not Found");
-        strcpy(res->payload, "Nessun film disponibile.");
+        if (films == NULL)
+        {
+            // Errore del server nel recupero dei film
+            strcpy(res->status_code, "500");
+            strcpy(res->phrase, "Server Error");
+            strcpy(res->payload, "Errore del server, riprova piu tardi.");
+        }
+        else if (strlen(films) == 0)
+        {
+            // Nessun film trovato
+            strcpy(res->status_code, "404");
+            strcpy(res->phrase, "Not Found");
+            strcpy(res->payload, "Nessun film disponibile.");
+        }
+        else
+        {
+            // Film trovati con successo
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "Ok");
+            strcpy(res->payload, films);
+            ret = true;
+        }
+        free(films); // Libera la memoria allocata per la stringa dei film
     }
     else
     {
-        // Film trovati con successo
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "Ok");
-        strcpy(res->payload, films);
+        strcpy(res->status_code, "403");
+        strcpy(res->phrase, "Forbidden");
+        strcpy(res->payload, "Non hai i permessi necessari per accedere a questa risorsa.");
     }
 
     send_response(res, client_socket);
 
     free_request(req);
     free_response(res);
-    free(films); // Libera la memoria allocata per la stringa dei film
 
-    return true;
-}
-
-bool handle_get_film_info_request(request_t *req, int client_socket)
-{
-    printf("Controllo se l'utente è un NEGOZIANTE...\n");
-    printf("GET /film/info request ricevuta...\n");
-    // Aggiungi qui il codice per gestire la richiesta GET
-    print_request(req);
-    // liberare la memoria della request (free_request(req))
-    return true;
+    return ret;
 }
 
 bool handle_get_loan_expire_request(request_t *req, int client_socket)
 {
-    printf("GET /loan/expire request ricevuta...\n");
-    print_request(req);
-
     response_t *res = init_response();
+    bool ret = false;
 
-    // TODO: CONTROLLA CHE SIA USER
-    char *expired_loans = select_all_expired_loans();
+    if (isNegoziante(req))
+    {
+        char *expired_loans = select_all_expired_loans();
 
-    if (expired_loans == NULL)
-    {
-        strcpy(res->status_code, "500");
-        strcpy(res->phrase, "Server Error");
-        strcpy(res->payload, " ");
-    }
-    else if (strlen(expired_loans) == 0)
-    {
-        // Nessun film trovato
-        strcpy(res->status_code, "404");
-        strcpy(res->phrase, "Not Found");
-        strcpy(res->payload, "Nessun film disponibile.");
+        if (expired_loans == NULL)
+        {
+            strcpy(res->status_code, "500");
+            strcpy(res->phrase, "Server Error");
+            strcpy(res->payload, "Errore del server, riprova piu tardi.");
+        }
+        else if (strlen(expired_loans) == 0)
+        {
+            strcpy(res->status_code, "404");
+            strcpy(res->phrase, "Not Found");
+            strcpy(res->payload, "Nessun noleggio scaduto.");
+        }
+        else
+        {
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "Ok");
+            strcpy(res->payload, expired_loans);
+            ret = true;
+        }
+
+        free(expired_loans);
     }
     else
     {
-        // Film trovati con successo
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "Ok");
-        strcpy(res->payload, expired_loans);
+        strcpy(res->status_code, "403");
+        strcpy(res->phrase, "Forbidden");
+        strcpy(res->payload, "Non hai i permessi necessari per accedere a questa risorsa.");
     }
 
     send_response(res, client_socket);
 
     free_request(req);
     free_response(res);
-    free(expired_loans); // Libera la memoria allocata per la stringa dei film
 
-    return true;
+    return ret;
 }
 
+// TODO: implementa
 bool handle_get_message_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un USER...\n");
@@ -342,42 +330,49 @@ bool handle_get_message_request(request_t *req, int client_socket)
 
 bool handle_get_loan_request(request_t *req, int client_socket)
 {
-    printf("GET /loan request ricevuta...\n");
-    print_request(req);
 
     response_t *res = init_response();
+    bool ret = false;
 
-    // TODO: CONTROLLA CHE SIA USER
-    char *loans = select_active_loans_by_id("1"); // TODO: USERID VA RECUPERATO DAL JWT
+    if (isUser(req))
+    {
+        char *loans = select_active_loans_by_id(jwt_extract_user_id(decode_jwt(extract_jwt_from_headers(req))));
 
-    if (loans == NULL)
-    {
-        strcpy(res->status_code, "500");
-        strcpy(res->phrase, "Server Error");
-        strcpy(res->payload, " ");
-    }
-    else if (strlen(loans) == 0)
-    {
-        // Nessun film trovato
-        strcpy(res->status_code, "404");
-        strcpy(res->phrase, "Not Found");
-        strcpy(res->payload, "Nessun film disponibile.");
+        if (loans == NULL)
+        {
+            strcpy(res->status_code, "500");
+            strcpy(res->phrase, "Server Error");
+            strcpy(res->payload, "Errore del server, riprova piu tardi.");
+        }
+        else if (strlen(loans) == 0)
+        {
+            strcpy(res->status_code, "404");
+            strcpy(res->phrase, "Not Found");
+            strcpy(res->payload, "Nessun film disponibile.");
+        }
+        else
+        {
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "Ok");
+            strcpy(res->payload, loans);
+            ret = true;
+        }
+
+        free(loans);
     }
     else
     {
-        // Film trovati con successo
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "Ok");
-        strcpy(res->payload, loans);
+        strcpy(res->status_code, "403");
+        strcpy(res->phrase, "Forbidden");
+        strcpy(res->payload, "Non hai i permessi necessari per accedere a questa risorsa.");
     }
 
     send_response(res, client_socket);
 
     free_request(req);
     free_response(res);
-    free(loans); // Libera la memoria allocata per la stringa dei film
 
-    return true;
+    return ret;
 }
 
 /*------------------------------------------------------------------*/
@@ -386,6 +381,7 @@ bool handle_get_loan_request(request_t *req, int client_socket)
 /*-------------------------- PUT REQUESTS --------------------------*/
 /*------------------------------------------------------------------*/
 
+// TODO: implementa
 bool handle_put_user_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un NEGOZIANTE...\n");
@@ -399,39 +395,40 @@ bool handle_put_user_request(request_t *req, int client_socket)
 
 bool handle_put_loan_film_request(request_t *req, int client_socket)
 {
-    printf("PUT /loan/film request ricevuta...\n");
-    print_request(req);
-    response_t *res = init_response();
-    printf("controllo che sia un USER...\n");
 
-    // if (isUser(req)) // TODO: RIMUOVERE COMMENTI
-    // {
-    film_t *film = extract_film_from_json(req->payload);
-    if (update_film_return(film->id, "1")) // TODO: USER ID VA ESTRATTO DAL JWT
+    response_t *res = init_response();
+    bool ret = false;
+
+    if (isUser(req))
     {
+        film_t *film = extract_film_from_json(req->payload);
+        if (update_film_return(film->id, jwt_extract_user_id(decode_jwt(extract_jwt_from_headers(req)))))
+        {
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "ok");
+            ret = true;
+        }
+        else
+        {
+            strcpy(res->status_code, "400");
+            strcpy(res->phrase, "Can't add to cart");
+        }
         free(film);
-        strcpy(res->status_code, "200");
-        strcpy(res->phrase, "ok");
     }
     else
     {
-        free(film);
-        strcpy(res->status_code, "400");
-        strcpy(res->phrase, "Can't add to cart");
+        strcpy(res->status_code, "403");
+        strcpy(res->phrase, "Forbidden");
+        strcpy(res->payload, "You dont't have perimssion to access this resource.");
     }
-    //}
-    // else
-    // {
-    //     strcpy(res->status_code, "402");
-    //     strcpy(res->phrase, "Don't have permissions");
-    // }
 
     send_response(res, client_socket);
     free_request(req);
     free_response(res);
-    return true;
+    return ret;
 }
 
+// TODO: implementa
 bool handle_put_loan_request(request_t *req, int client_socket)
 {
     printf("PUT /loan request ricevuta...\n");
@@ -448,6 +445,7 @@ bool handle_put_loan_request(request_t *req, int client_socket)
 /*------------------------ DELETE REQUESTS -------------------------*/
 /*------------------------------------------------------------------*/
 
+// TODO: implementa
 bool handle_delete_user_request(request_t *req, int client_socket)
 {
     printf("DELETE /user request ricevuta...\n");
