@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lso.client.DTO.FilmDTO;
 import com.lso.client.DTO.LoanDTO;
+import com.lso.client.DTO.MessageDTO;
 
 @Service
 public class ResponseService {
@@ -77,6 +78,12 @@ public class ResponseService {
     public List<LoanDTO> parseLoans(String jsonPayload) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(jsonPayload, new TypeReference<List<LoanDTO>>() {
+        });
+    }
+
+    public List<MessageDTO> parseMessages(String jsonPayload) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        return objectMapper.readValue(jsonPayload, new TypeReference<List<MessageDTO>>() {
         });
     }
 

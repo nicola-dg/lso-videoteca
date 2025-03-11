@@ -957,6 +957,12 @@ void prepare_select_statements()
                     "WHERE l.return_date IS NULL AND CURRENT_DATE > l.due_date;",
                     0, NULL);
     PQclear(res);
+
+    // Query preparata per ottenere loans scaduti
+    res = PQprepare(conn, "select_all_messages",
+                    "SELECT id, user_id, text, checkout_date FROM messages WHERE user_id = $1;",
+                    1, NULL);
+    PQclear(res);
 }
 
 void select_all_users()
@@ -1199,6 +1205,42 @@ char *select_all_expired_loans()
     // Converti il JSON in una stringa (il chiamante deve liberare la memoria con `free`)
     char *json_string_result = json_dumps(loan_array, JSON_INDENT(4));
     json_decref(loan_array); // Libera la struttura JSON (ma non la stringa)
+
+    return json_string_result;
+}
+
+char *select_all_messages(char *user_id)
+{
+    const char *paramValues[1] = {user_id};
+
+    PGresult *res = PQexecPrepared(conn, "select_all_messages", 1, paramValues, NULL, NULL, 0);
+
+    if (PQresultStatus(res) != PGRES_TUPLES_OK)
+    {
+        fprintf(stderr, "Errore nell'esecuzione della SELECT: %s\n", PQerrorMessage(conn));
+        PQclear(res);
+        return NULL;
+    }
+
+    int rows = PQntuples(res);
+    json_t *message_array = json_array();
+
+    for (int i = 0; i < rows; i++)
+    {
+        json_t *message_json = json_object();
+
+        json_object_set_new(message_json, "id", json_string(PQgetvalue(res, i, 0)));
+        json_object_set_new(message_json, "user_id", json_string(PQgetvalue(res, i, 1)));
+        json_object_set_new(message_json, "text", json_string(PQgetvalue(res, i, 2)));
+        json_object_set_new(message_json, "checkout_date", json_string(PQgetvalue(res, i, 3)));
+
+        json_array_append_new(message_array, message_json);
+    }
+
+    PQclear(res); // Libera il risultato della query
+
+    char *json_string_result = json_dumps(message_array, JSON_INDENT(4));
+    json_decref(message_array);
 
     return json_string_result;
 }

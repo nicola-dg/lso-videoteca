@@ -39,7 +39,7 @@ bool handle_post_film_request(request_t *req, int client_socket)
     bool ret = false;
     print_request(req);
 
-    if (isUser(req)) // TODO: DEVE CONTROLLARE CHE SIA NEGOZIANTE METTO USER PER TEST
+    if (isUser(req)) // : DEVE CONTROLLARE CHE SIA NEGOZIANTE METTO USER PER TEST
     {
         printf("here");
         film_t *film = extract_film_from_json(req->payload);
@@ -275,7 +275,7 @@ bool handle_get_loan_expire_request(request_t *req, int client_socket)
     response_t *res = init_response();
     bool ret = false;
 
-    if (isNegoziante(req))
+    if (isUser(req)) // TODO: cambiare in isNegoziante()
     {
         char *expired_loans = select_all_expired_loans();
 
@@ -316,7 +316,6 @@ bool handle_get_loan_expire_request(request_t *req, int client_socket)
     return ret;
 }
 
-// TODO: implementa
 bool handle_get_message_request(request_t *req, int client_socket)
 {
     printf("Controllo se l'utente è un USER...\n");
@@ -324,8 +323,48 @@ bool handle_get_message_request(request_t *req, int client_socket)
     // Aggiungi qui il codice per gestire la richiesta GET
     print_request(req);
 
-    // liberare la memoria della request (free_request(req))
-    return true;
+    response_t *res = init_response();
+    bool ret = false;
+
+    if (isUser(req))
+    {
+        char *messages = select_all_messages(jwt_extract_user_id(decode_jwt(extract_jwt_from_headers(req))));
+
+        if (messages == NULL)
+        {
+            strcpy(res->status_code, "500");
+            strcpy(res->phrase, "Server Error");
+            strcpy(res->payload, "Errore del server, riprova piu tardi.");
+        }
+        else if (strlen(messages) == 0)
+        {
+            strcpy(res->status_code, "404");
+            strcpy(res->phrase, "Not Found");
+            strcpy(res->payload, "Nessun noleggio scaduto.");
+        }
+        else
+        {
+            strcpy(res->status_code, "200");
+            strcpy(res->phrase, "Ok");
+            strcpy(res->payload, messages);
+            ret = true;
+        }
+
+        free(messages);
+    }
+    else
+    {
+        strcpy(res->status_code, "403");
+        strcpy(res->phrase, "Forbidden");
+        strcpy(res->payload, "Non hai i permessi necessari per accedere a questa risorsa.");
+    }
+
+    send_response(res, client_socket);
+
+    free_request(req);
+    free_response(res);
+
+    return ret;
 }
 
 bool handle_get_loan_request(request_t *req, int client_socket)

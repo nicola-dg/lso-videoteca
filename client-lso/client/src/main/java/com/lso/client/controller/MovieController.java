@@ -32,6 +32,8 @@ public class MovieController {
         this.responseService = responseService;
     }
 
+
+    
     @GetMapping("/home")
     public String getAllMovies(Model model, HttpSession session) {
         String jwt = (String) session.getAttribute("jwt");
@@ -153,7 +155,7 @@ public class MovieController {
 
         return "user-profile-test";
     }
-    
+
     @GetMapping("/loan/expire")
     public String returnFilmLoan(HttpSession session) {
         String jwt = (String) session.getAttribute("jwt");
@@ -172,7 +174,26 @@ public class MovieController {
     }
 
     /* FUNZIONI DA SPOSTARE IN MESSAGE CONTROLLER */
+
     @GetMapping("/message")
+    public String showMessages(HttpSession session) {
+        String jwt = (String) session.getAttribute("jwt");
+        Response res = requestService
+                .sendRequest(requestService.createRequest().setMethod(Method.GET).setPath("/message")
+                        .setHeader(new Header("Authorization", "Bearer " + jwt)));
+        try {
+            if (res.getStatusCode().equals("200")) {
+                List<MessageDTO> messages = responseService.parseMessages(res.getPayload());
+                messages.forEach(System.out::println);
+            }
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        return "send-message";
+    }
+
+    @GetMapping("/send-message")
     public String showSendMessage() {
         return "send-message";
     }

@@ -56,7 +56,7 @@ public class MessageDTO {
     // Metodo toString per debug e logging
     @Override
     public String toString() {
-        return "LoanDTO{" +
+        return "Message{" +
                 "id='" + id + '\'' +
                 ", userId='" + userId + '\'' +
                 ", text='" + text + '\'' +
