@@ -1,44 +1,67 @@
 package com.lso.client.service;
 
 import java.io.*;
-import java.net.Socket;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.net.*;
+import java.util.concurrent.*;
 
 import org.springframework.stereotype.Service;
 
 @Service
 public class SocketClient {
+    private static final String SERVER_HOST = "server"; // Modifica con l'indirizzo del tuo server
+    private static final int SERVER_PORT = 3000; // Modifica con la porta del server
     private Socket socket;
     private PrintWriter out;
     private BufferedReader in;
-    private final BlockingQueue<String> responseQueue = new LinkedBlockingQueue<>();
-    private volatile boolean isRunning;
-
-    private static final String SERVER_HOST = "localhost";
-    private static final int SERVER_PORT = 3000;
+    private boolean isRunning;
+    private BlockingQueue<String> responseQueue = new LinkedBlockingQueue<>();
 
     public SocketClient() throws IOException {
-        this.socket = new Socket(SERVER_HOST, SERVER_PORT);
-        this.out = new PrintWriter(socket.getOutputStream(), true);
-        this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        this.isRunning = true;
+        int retries = 0;
+        int maxRetries = 10; // Numero massimo di tentativi
+        int retryDelay = 2000; // Ritardo iniziale in millisecondi (2 secondi)
 
-        // Thread per leggere le risposte del server
-        new Thread(() -> {
+        while (retries < maxRetries) {
             try {
-                while (isRunning) {
-                    String response = in.readLine();
-                    if (response != null) {
-                        responseQueue.put(response);
-                    } else {
+                this.socket = new Socket(SERVER_HOST, SERVER_PORT);
+                this.out = new PrintWriter(socket.getOutputStream(), true);
+                this.in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                this.isRunning = true;
+
+                // Thread per leggere le risposte del server
+                new Thread(() -> {
+                    try {
+                        while (isRunning) {
+                            String response = in.readLine();
+                            if (response != null) {
+                                responseQueue.put(response);
+                            } else {
+                                close();
+                            }
+                        }
+                    } catch (IOException | InterruptedException e) {
                         close();
                     }
+                }).start();
+
+                return; // Se la connessione è riuscita, esci dal ciclo
+
+            } catch (IOException e) {
+                retries++;
+                if (retries >= maxRetries) {
+                    throw new IOException("Impossibile connettersi al server dopo " + maxRetries + " tentativi.");
                 }
-            } catch (IOException | InterruptedException e) {
-                close();
+                System.out
+                        .println("Tentativo di connessione fallito. Riprovo tra " + retryDelay / 1000 + " secondi...");
+                try {
+                    Thread.sleep(retryDelay); // Ritardo tra i tentativi
+                    retryDelay *= 2; // Aumenta il ritardo per il prossimo tentativo
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException("Interruzione durante il ritardo tra i tentativi.");
+                }
             }
-        }).start();
+        }
     }
 
     public String sendRequest(String request) throws IOException {

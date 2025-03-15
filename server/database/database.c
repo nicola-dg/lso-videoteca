@@ -20,7 +20,7 @@ void database_start(bool reset)
 void database_connect()
 {
 
-    conn = PQconnectdb("host=localhost port=5432 dbname=videotecadb user=postgres password=1234");
+    conn = PQconnectdb("host=db port=5432 dbname=videotecadb user=postgres password=1234");
     if (PQstatus(conn) != CONNECTION_OK)
     {
         fprintf(stderr, "Errore di connessione: %s\n", PQerrorMessage(conn));

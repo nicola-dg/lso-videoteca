@@ -22,7 +22,7 @@ SRCS = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SOCKET_DIR)/*.c) $(wildcard $(JSO
 OBJS = $(SRCS:%.c=$(OBJ_DIR)/%.o)
 
 # Binary name
-TARGET = $(BIN_DIR)/main.exe
+TARGET = $(BIN_DIR)/main.o
 
 # Create necessary directories
 $(shell mkdir -p $(BIN_DIR) $(OBJ_DIR) $(OBJ_DIR)/$(SOCKET_DIR) $(OBJ_DIR)/$(JSON_PARSING_DIR) \
